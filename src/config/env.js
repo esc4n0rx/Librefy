@@ -11,6 +11,11 @@ const envSchema = z.object({
   SUPABASE_SERVICE_KEY: z.string(),
   RESEND_API_KEY: z.string(),
   FROM_EMAIL: z.string().email(),
+
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_PUBLISHABLE_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_PREMIUM_PRICE_ID: z.string(),
 });
 
 const parseEnv = () => {

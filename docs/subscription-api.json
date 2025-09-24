@@ -1,0 +1,377 @@
+{
+    "subscription_api_documentation": {
+      "base_url": "http://localhost:3000",
+      "version": "v1",
+      "description": "API de Assinaturas do Librefy com integração Stripe",
+      
+      "endpoints": {
+        
+        "get_plans": {
+          "method": "GET",
+          "url": "/v1/subscription/plans",
+          "description": "Listar todos os planos disponíveis",
+          "authentication": false,
+          "request": {
+            "headers": {},
+            "body": null
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Planos obtidos com sucesso",
+                "data": [
+                  {
+                    "id": "uuid",
+                    "name": "free",
+                    "display_name": "Plano Gratuito",
+                    "description": "Funcionalidades básicas gratuitas",
+                    "price_monthly": 0.00,
+                    "stripe_price_id": null,
+                    "features": {
+                      "reading_unlimited": true,
+                      "publishing_unlimited": true,
+                      "offline_library_limit": 3,
+                      "ads_enabled": true,
+                      "community_access": true,
+                      "contests_access": true,
+                      "book_highlight": false,
+                      "statistics": false,
+                      "custom_covers": false
+                    }
+                  },
+                  {
+                    "id": "uuid",
+                    "name": "premium",
+                    "display_name": "Autor Premium",
+                    "description": "Para quem escreve e quer mais alcance",
+                    "price_monthly": 19.90,
+                    "stripe_price_id": "price_1234567890",
+                    "features": {
+                      "reading_unlimited": true,
+                      "publishing_unlimited": true,
+                      "offline_library_limit": 20,
+                      "ads_enabled": false,
+                      "community_access": true,
+                      "contests_access": true,
+                      "book_highlight": true,
+                      "statistics": true,
+                      "custom_covers": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+  
+        "get_my_subscription": {
+          "method": "GET",
+          "url": "/v1/subscription/my-subscription",
+          "description": "Obter assinatura atual do usuário autenticado",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "body": null
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Assinatura obtida com sucesso",
+                "data": {
+                  "plan": "premium",
+                  "features": {
+                    "reading_unlimited": true,
+                    "publishing_unlimited": true,
+                    "offline_library_limit": 20,
+                    "ads_enabled": false,
+                    "community_access": true,
+                    "contests_access": true,
+                    "book_highlight": true,
+                    "statistics": true,
+                    "custom_covers": true
+                  },
+                  "status": "active",
+                  "expiresAt": "2025-10-24T14:30:00.000Z"
+                }
+              }
+            },
+            "free_user": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Assinatura obtida com sucesso",
+                "data": {
+                  "plan": "free",
+                  "features": {
+                    "reading_unlimited": true,
+                    "publishing_unlimited": true,
+                    "offline_library_limit": 3,
+                    "ads_enabled": true,
+                    "community_access": true,
+                    "contests_access": true,
+                    "book_highlight": false,
+                    "statistics": false,
+                    "custom_covers": false
+                  },
+                  "status": "inactive",
+                  "expiresAt": null
+                }
+              }
+            }
+          }
+        },
+  
+        "create_checkout_session": {
+          "method": "POST",
+          "url": "/v1/subscription/checkout",
+          "description": "Criar sessão de pagamento no Stripe",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "plan": "premium"
+            },
+            "validation": {
+              "plan": "string, deve ser 'premium'"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Sessão de checkout criada com sucesso",
+                "data": {
+                  "sessionId": "cs_test_1234567890",
+                  "checkoutUrl": "https://checkout.stripe.com/pay/cs_test_1234567890"
+                }
+              }
+            },
+            "already_subscribed": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Usuário já possui assinatura ativa"
+              }
+            },
+            "invalid_plan": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Plano não encontrado"
+              }
+            }
+          }
+        },
+  
+        "cancel_subscription": {
+          "method": "DELETE",
+          "url": "/v1/subscription/cancel",
+          "description": "Cancelar assinatura do usuário",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "body": null
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Assinatura cancelada com sucesso"
+              }
+            },
+            "no_subscription": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Nenhuma assinatura encontrada"
+              }
+            },
+            "not_active": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Assinatura não está ativa"
+              }
+            }
+          }
+        },
+  
+        "check_feature_access": {
+          "method": "GET",
+          "url": "/v1/subscription/check-feature/{feature}",
+          "description": "Verificar acesso a uma feature específica",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "body": null,
+            "params": {
+              "feature": "book_highlight | statistics | custom_covers | ads_enabled"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Verificação realizada com sucesso",
+                "data": {
+                  "feature": "book_highlight",
+                  "hasAccess": true
+                }
+              }
+            }
+          }
+        },
+  
+        "stripe_webhook": {
+          "method": "POST",
+          "url": "/v1/subscription/webhook",
+          "description": "Endpoint para receber webhooks do Stripe",
+          "authentication": false,
+          "security": "Stripe Signature Verification",
+          "request": {
+            "headers": {
+              "stripe-signature": "t=1234567890,v1=abc123...",
+              "Content-Type": "application/json"
+            },
+            "body": "Raw Stripe Event JSON"
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Webhook processado com sucesso"
+              }
+            },
+            "invalid_signature": {
+              "status": 400,
+              "body": "Webhook Error: Invalid signature"
+            }
+          },
+          "supported_events": [
+            "checkout.session.completed",
+            "invoice.payment_succeeded",
+            "invoice.payment_failed",
+            "customer.subscription.updated",
+            "customer.subscription.deleted"
+          ]
+        }
+      },
+  
+      "middleware_usage": {
+        "requirePremium": {
+          "description": "Middleware para bloquear acesso apenas para usuários Premium",
+          "usage": "Adicionar antes de rotas que requerem Premium",
+          "response_blocked": {
+            "status": 403,
+            "body": {
+              "success": false,
+              "message": "Acesso negado. Recurso disponível apenas para assinantes Premium",
+              "currentPlan": "free",
+              "upgradeRequired": true
+            }
+          }
+        },
+        "requireFeature": {
+          "description": "Middleware para verificar acesso a feature específica",
+          "usage": "requireFeature('book_highlight')",
+          "response_blocked": {
+            "status": 403,
+            "body": {
+              "success": false,
+              "message": "Acesso negado. Recurso disponível apenas para assinantes Premium",
+              "requiredFeature": "book_highlight",
+              "upgradeRequired": true
+            }
+          }
+        },
+        "checkUsageLimit": {
+          "description": "Middleware para verificar limites de uso",
+          "usage": "checkUsageLimit('offline_library_limit')",
+          "adds_to_request": "req.featureLimit = number"
+        },
+        "attachPlanInfo": {
+          "description": "Middleware para adicionar informações do plano ao request",
+          "usage": "Usar quando precisar das informações do plano no controller",
+          "adds_to_request": "req.userPlan = { plan, features, status, expiresAt }"
+        }
+      },
+  
+      "plan_features": {
+        "free": {
+          "reading_unlimited": true,
+          "publishing_unlimited": true,
+          "offline_library_limit": 3,
+          "ads_enabled": true,
+          "community_access": true,
+          "contests_access": true,
+          "book_highlight": false,
+          "statistics": false,
+          "custom_covers": false
+        },
+        "premium": {
+          "reading_unlimited": true,
+          "publishing_unlimited": true,
+          "offline_library_limit": 20,
+          "ads_enabled": false,
+          "community_access": true,
+          "contests_access": true,
+          "book_highlight": true,
+          "statistics": true,
+          "custom_covers": true
+        }
+      },
+  
+      "integration_examples": {
+        "protect_route_premium_only": {
+          "code": "router.get('/premium-feature', authMiddleware, requirePremium, controller.premiumFeature);"
+        },
+        "protect_route_specific_feature": {
+          "code": "router.get('/statistics', authMiddleware, requireFeature('statistics'), controller.getStatistics);"
+        },
+        "check_usage_limit": {
+          "code": "router.post('/add-to-library', authMiddleware, checkUsageLimit('offline_library_limit'), controller.addToLibrary);"
+        },
+        "use_plan_info": {
+          "code": "router.get('/dashboard', authMiddleware, attachPlanInfo, controller.getDashboard);"
+        }
+      },
+  
+      "security_features": [
+        "Webhook signature verification do Stripe",
+        "Validação server-side de todos os planos e features",
+        "Impossibilidade de bypass via frontend",
+        "Sincronização automática com eventos do Stripe",
+        "Limpeza automática de códigos e assinaturas expiradas",
+        "Middleware de proteção em todas as rotas sensíveis"
+      ],
+  
+      "environment_variables": {
+        "required": [
+          "STRIPE_SECRET_KEY=sk_test_...",
+          "STRIPE_PUBLISHABLE_KEY=pk_test_...",
+          "STRIPE_WEBHOOK_SECRET=whsec_...",
+          "STRIPE_PREMIUM_PRICE_ID=price_..."
+        ],
+        "optional": [
+          "APP_URL=myapp://  # Para redirect após pagamento"
+        ]
+      }
+    }
+  }

@@ -1,5 +1,6 @@
 const express = require('express');
 const authRoutes = require('./auth-routes');
+const subscriptionRoutes = require('./subscription-routes');
 
 const router = express.Router();
 
@@ -19,7 +20,10 @@ router.get('/health', (req, res) => {
 // Rotas de autenticação
 router.use(`${API_VERSION}/auth`, authRoutes);
 
-// Rota 404 para endpoints não encontrados - CORRIGIDO
+// Rotas de assinatura
+router.use(`${API_VERSION}/subscription`, subscriptionRoutes);
+
+// Rota 404 para endpoints não encontrados
 router.use((req, res) => {
   res.status(404).json({
     success: false,

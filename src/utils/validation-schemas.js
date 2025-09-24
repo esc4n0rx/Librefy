@@ -67,6 +67,13 @@ const changeEmailSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória para alterar email')
 });
 
+// Novos schemas para assinatura
+const createCheckoutSessionSchema = z.object({
+  plan: z.string()
+    .min(1, 'Plano é obrigatório')
+    .refine(value => ['premium'].includes(value), 'Plano deve ser: premium')
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -74,5 +81,6 @@ module.exports = {
   resetPasswordSchema,
   updateProfileSchema,
   changePasswordSchema,
-  changeEmailSchema
+  changeEmailSchema,
+  createCheckoutSessionSchema
 };
