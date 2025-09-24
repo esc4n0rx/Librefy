@@ -1,6 +1,7 @@
 const express = require('express');
 const authRoutes = require('./auth-routes');
 const subscriptionRoutes = require('./subscription-routes');
+const bookRoutes = require('./book-routes');
 
 const router = express.Router();
 
@@ -22,6 +23,9 @@ router.use(`${API_VERSION}/auth`, authRoutes);
 
 // Rotas de assinatura
 router.use(`${API_VERSION}/subscription`, subscriptionRoutes);
+
+// Rotas de livros
+router.use(`${API_VERSION}/books`, bookRoutes);
 
 // Rota 404 para endpoints não encontrados
 router.use((req, res) => {

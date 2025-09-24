@@ -7,14 +7,14 @@ const server = app.listen(PORT, () => {
   console.log(`
   ╭─────────────────────────────────────────────╮
   │                                             │
-  │           🚀 LIBREFY API STARTED            │
+  │           LIBREFY API STARTED               │
   │                                             │
-  │   Port: ${PORT.toString().padEnd(32)}      │
-  │   Environment: ${env.NODE_ENV.padEnd(25)}      │
-  │   Time: ${new Date().toLocaleString('pt-BR').padEnd(25)}      │
+  │   Port: ${PORT.toString().padEnd(32)}       │
+  │   Environment: ${env.NODE_ENV.padEnd(25)}   │
   │                                             │
-  │   Health Check: http://localhost:${PORT}/health   │
-  │   API Base: http://localhost:${PORT}/v1          │
+  │                                             │
+  │ Health : http://localhost:${PORT}/health    │
+  │ API Base: http://localhost:${PORT}/v1       │
   │                                             │
   ╰─────────────────────────────────────────────╯
   `);

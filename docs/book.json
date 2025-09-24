@@ -1,0 +1,1152 @@
+{
+    "books_api_documentation": {
+      "base_url": "http://localhost:3000",
+      "version": "v1",
+      "description": "API de Livros e Capítulos do Librefy",
+      "authentication": "JWT Bearer Token (algumas rotas públicas)",
+      "content_type": "application/json",
+      
+      "endpoints": {
+        
+        "create_book": {
+          "method": "POST",
+          "url": "/v1/books",
+          "description": "Criar novo livro (rascunho)",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "title": "Meu Primeiro Livro",
+              "description": "Uma história incrível sobre aventura e descoberta",
+              "tags": ["aventura", "fantasia", "jovem-adulto"],
+              "visibility": "public"
+            },
+            "validation": {
+              "title": "string, obrigatório, 1-200 caracteres",
+              "description": "string, opcional, max 2000 caracteres",
+              "tags": "array de strings, opcional, max 10 tags",
+              "visibility": "enum: public|unlisted|private, default: public"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "success": true,
+                "message": "Livro criado com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "title": "Meu Primeiro Livro",
+                  "description": "Uma história incrível sobre aventura e descoberta",
+                  "cover_url": null,
+                  "status": "draft",
+                  "visibility": "public",
+                  "tags": ["aventura", "fantasia", "jovem-adulto"],
+                  "words_count": 0,
+                  "chapters_count": 0,
+                  "likes_count": 0,
+                  "reads_count": 0,
+                  "created_at": "2025-09-24T14:30:00.000Z",
+                  "updated_at": "2025-09-24T14:30:00.000Z",
+                  "published_at": null
+                }
+              }
+            }
+          }
+        },
+  
+        "get_book": {
+          "method": "GET",
+          "url": "/v1/books/{id}",
+          "description": "Obter detalhes de um livro com capítulos",
+          "authentication": false,
+          "note": "Autenticação opcional. Autores veem capítulos não publicados",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN (opcional)"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro obtido com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "author_id": "660e8400-e29b-41d4-a716-446655440001",
+                  "title": "Meu Primeiro Livro",
+                  "slug": "meu-primeiro-livro",
+                  "description": "Uma história incrível",
+                  "cover_url": "https://res.cloudinary.com/librefy/image/upload/v1234567890/covers/cover_550e8400.webp",
+                  "status": "published",
+                  "visibility": "public",
+                  "tags": ["aventura", "fantasia"],
+                  "words_count": 2500,
+                  "chapters_count": 3,
+                  "likes_count": 15,
+                  "reads_count": 120,
+                  "created_at": "2025-09-24T14:30:00.000Z",
+                  "updated_at": "2025-09-24T15:30:00.000Z",
+                  "published_at": "2025-09-24T15:30:00.000Z",
+                  "users": {
+                    "id": "660e8400-e29b-41d4-a716-446655440001",
+                    "name": "João Silva",
+                    "username": "joaosilva",
+                    "avatar_url": "https://example.com/avatar.jpg"
+                  },
+                  "chapters": [
+                    {
+                      "id": "770e8400-e29b-41d4-a716-446655440002",
+                      "chapter_number": 1,
+                      "title": "O Início da Jornada",
+                      "content_md": "# O Início\n\nEra uma vez...",
+                      "words_count": 850,
+                      "is_published": true,
+                      "created_at": "2025-09-24T14:35:00.000Z",
+                      "updated_at": "2025-09-24T14:35:00.000Z",
+                      "published_at": "2025-09-24T15:30:00.000Z"
+                    }
+                  ]
+                }
+              }
+            },
+            "not_found": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Livro não encontrado"
+              }
+            },
+            "access_denied": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Acesso negado"
+              }
+            }
+          }
+        },
+  
+        "update_book": {
+          "method": "PUT",
+          "url": "/v1/books/{id}",
+          "description": "Atualizar metadados do livro",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "id": "UUID do livro"
+            },
+            "body": {
+              "title": "Título Atualizado",
+              "description": "Nova descrição mais detalhada",
+              "tags": ["aventura", "fantasia", "magia"],
+              "visibility": "public"
+            },
+            "note": "Todos os campos são opcionais"
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro atualizado com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "title": "Título Atualizado",
+                  "slug": "titulo-atualizado",
+                  "description": "Nova descrição mais detalhada",
+                  "cover_url": null,
+                  "status": "draft",
+                  "visibility": "public",
+                  "tags": ["aventura", "fantasia", "magia"],
+                  "words_count": 0,
+                  "chapters_count": 0,
+                  "likes_count": 0,
+                  "reads_count": 0,
+                  "created_at": "2025-09-24T14:30:00.000Z",
+                  "updated_at": "2025-09-24T16:30:00.000Z",
+                  "published_at": null
+                }
+              }
+            }
+          }
+        },
+  
+        "delete_book": {
+          "method": "DELETE",
+          "url": "/v1/books/{id}",
+          "description": "Deletar livro permanentemente",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro deletado com sucesso"
+              }
+            }
+          }
+        },
+  
+        "upload_book_cover": {
+          "method": "POST",
+          "url": "/v1/books/{id}/cover",
+          "description": "Upload de capa do livro",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN",
+              "Content-Type": "multipart/form-data"
+            },
+            "params": {
+              "id": "UUID do livro"
+            },
+            "body": "FormData com campo 'cover' contendo arquivo de imagem",
+            "validation": {
+              "cover": "arquivo de imagem, max 5MB, formatos: jpg, png, webp"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capa atualizada com sucesso",
+                "data": {
+                  "cover_url": "https://res.cloudinary.com/librefy/image/upload/v1234567890/covers/cover_550e8400.webp"
+                }
+              }
+            },
+            "validation_error": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Apenas arquivos de imagem são permitidos"
+              }
+            },
+            "file_too_large": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Arquivo muito grande. Tamanho máximo: 5MB"
+              }
+            }
+          }
+        },
+  
+        "publish_book": {
+          "method": "POST",
+          "url": "/v1/books/{id}/publish",
+          "description": "Publicar livro e todos os seus capítulos",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro publicado com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "title": "Meu Primeiro Livro",
+                  "slug": "meu-primeiro-livro",
+                  "status": "published",
+                  "published_at": "2025-09-24T16:30:00.000Z"
+                }
+              }
+            },
+            "no_chapters": {
+              "status": 400,
+              "body": {
+                "success": false,
+                "message": "Livro deve ter pelo menos um capítulo para ser publicado"
+              }
+            }
+          }
+        },
+  
+        "unpublish_book": {
+          "method": "POST",
+          "url": "/v1/books/{id}/unpublish",
+          "description": "Despublicar livro (volta para rascunho)",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro despublicado com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "draft",
+                  "published_at": null
+                }
+              }
+            }
+          }
+        },
+  
+        "archive_book": {
+          "method": "POST",
+          "url": "/v1/books/{id}/archive",
+          "description": "Arquivar livro (soft delete)",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro arquivado com sucesso",
+                "data": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "archived"
+                }
+              }
+            }
+          }
+        },
+  
+        "like_book": {
+          "method": "POST",
+          "url": "/v1/books/{id}/like",
+          "description": "Curtir ou descurtir livro",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "liked": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livro curtido",
+                "data": {
+                  "liked": true
+                }
+              }
+            },
+            "unliked": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Curtida removida",
+                "data": {
+                  "liked": false
+                }
+              }
+            }
+          }
+        },
+  
+        "get_my_books": {
+          "method": "GET",
+          "url": "/v1/books/my/books",
+          "description": "Listar meus livros",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "query_params": {
+              "status": "draft|published|archived (opcional)"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livros obtidos com sucesso",
+                "data": [
+                  {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Meu Primeiro Livro",
+                    "description": "Uma história incrível",
+                    "cover_url": null,
+                    "status": "draft",
+                    "visibility": "public",
+                    "tags": ["aventura"],
+                    "words_count": 0,
+                    "chapters_count": 0,
+                    "likes_count": 0,
+                    "reads_count": 0,
+                    "created_at": "2025-09-24T14:30:00.000Z",
+                    "updated_at": "2025-09-24T14:30:00.000Z",
+                    "published_at": null
+                  }
+                ]
+              }
+            }
+          }
+        },
+  
+        "add_chapter": {
+          "method": "POST",
+          "url": "/v1/books/{id}/chapters",
+          "description": "Adicionar capítulo ao livro",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "id": "UUID do livro"
+            },
+            "body": {
+              "title": "Capítulo 1: O Início",
+              "content_md": "# O Início\n\nEra uma vez em um reino muito distante...\n\n## A Descoberta\n\nO herói encontrou algo inesperado.",
+              "chapter_number": 1
+            },
+            "validation": {
+              "title": "string, obrigatório, 1-200 caracteres",
+              "content_md": "string, obrigatório, conteúdo em Markdown",
+              "chapter_number": "number, opcional (auto-incrementa)"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 201,
+              "body": {
+                "success": true,
+                "message": "Capítulo adicionado com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "chapter_number": 1,
+                  "title": "Capítulo 1: O Início",
+                  "content_md": "# O Início\n\nEra uma vez...",
+                  "words_count": 85,
+                  "is_published": false,
+                  "created_at": "2025-09-24T14:35:00.000Z",
+                  "updated_at": "2025-09-24T14:35:00.000Z",
+                  "published_at": null
+                }
+              }
+            }
+          }
+        },
+  
+        "update_chapter": {
+          "method": "PUT",
+          "url": "/v1/books/chapter/{chapterId}",
+          "description": "Atualizar capítulo",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "chapterId": "UUID do capítulo"
+            },
+            "body": {
+              "title": "Capítulo 1: O Início Revisado",
+              "content_md": "# O Início Revisado\n\nEra uma vez... (conteúdo atualizado)"
+            },
+            "note": "Todos os campos são opcionais"
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo atualizado com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "title": "Capítulo 1: O Início Revisado",
+                  "words_count": 92,
+                  "updated_at": "2025-09-24T16:35:00.000Z"
+                }
+              }
+            }
+          }
+        },
+  
+        "delete_chapter": {
+          "method": "DELETE",
+          "url": "/v1/books/chapter/{chapterId}",
+          "description": "Deletar capítulo",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "chapterId": "UUID do capítulo"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo deletado com sucesso"
+              }
+            }
+          }
+        },
+  
+        "get_chapter": {
+          "method": "GET",
+          "url": "/v1/books/chapter/{chapterId}",
+          "description": "Obter capítulo específico",
+          "authentication": false,
+          "note": "Autenticação opcional. Apenas capítulos publicados são visíveis para não-autores",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN (opcional)"
+            },
+            "params": {
+              "chapterId": "UUID do capítulo"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo obtido com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "chapter_number": 1,
+                  "title": "Capítulo 1: O Início",
+                  "content_md": "# O Início\n\nEra uma vez...",
+                  "words_count": 85,
+                  "is_published": true,
+                  "created_at": "2025-09-24T14:35:00.000Z",
+                  "updated_at": "2025-09-24T14:35:00.000Z",
+                  "published_at": "2025-09-24T15:30:00.000Z",
+                  "books": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Meu Primeiro Livro",
+                    "author_id": "660e8400-e29b-41d4-a716-446655440001",
+                    "status": "published"
+                  }
+                }
+              }
+            }
+          }
+        },
+  
+        "get_book_chapters": {
+          "method": "GET",
+          "url": "/v1/books/{id}/chapters",
+          "description": "Listar capítulos de um livro",
+          "authentication": false,
+          "note": "Autenticação opcional. Autores veem todos os capítulos, outros apenas publicados",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN (opcional)"
+            },
+            "params": {
+              "id": "UUID do livro"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulos obtidos com sucesso",
+                "data": [
+                  {
+                    "id": "770e8400-e29b-41d4-a716-446655440002",
+                    "chapter_number": 1,
+                    "title": "Capítulo 1: O Início",
+                    "content_md": "# O Início\n\nEra uma vez...",
+                    "words_count": 85,
+                    "is_published": true,
+                    "created_at": "2025-09-24T14:35:00.000Z",
+                    "updated_at": "2025-09-24T14:35:00.000Z",
+                    "published_at": "2025-09-24T15:30:00.000Z"
+                  },
+                  {
+                    "id": "880e8400-e29b-41d4-a716-446655440003",
+                    "chapter_number": 2,
+                    "title": "Capítulo 2: A Jornada",
+                    "content_md": "# A Jornada\n\nO herói partiu...",
+                    "words_count": 120,
+                    "is_published": false,
+                    "created_at": "2025-09-24T14:40:00.000Z",
+                    "updated_at": "2025-09-24T14:40:00.000Z",
+                    "published_at": null
+                  }
+                ]
+              }
+            }
+          }
+        },
+  
+        "publish_chapter": {
+          "method": "POST",
+          "url": "/v1/books/chapter/{chapterId}/publish",
+          "description": "Publicar capítulo específico",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "chapterId": "UUID do capítulo"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo publicado com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "is_published": true,
+                  "published_at": "2025-09-24T16:40:00.000Z"
+                }
+              }
+            }
+          }
+        },
+  
+        "unpublish_chapter": {
+          "method": "POST",
+          "url": "/v1/books/chapter/{chapterId}/unpublish",
+          "description": "Despublicar capítulo específico",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN"
+            },
+            "params": {
+              "chapterId": "UUID do capítulo"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo despublicado com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "is_published": false,
+                  "published_at": null
+                }
+              }
+            }
+          }
+        },
+  
+        "read_chapter": {
+          "method": "GET",
+          "url": "/v1/books/{bookId}/chapter/{chapterNumber}",
+          "description": "Ler capítulo específico (incrementa contador)",
+          "authentication": false,
+          "note": "Autenticação opcional. Incrementa reads_count automaticamente",
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN (opcional)"
+            },
+            "params": {
+              "bookId": "UUID do livro",
+              "chapterNumber": "Número do capítulo (1, 2, 3...)"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulo obtido com sucesso",
+                "data": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "chapter_number": 1,
+                  "title": "Capítulo 1: O Início",
+                  "content_md": "# O Início\n\nEra uma vez...",
+                  "words_count": 85,
+                  "is_published": true,
+                  "created_at": "2025-09-24T14:35:00.000Z",
+                  "published_at": "2025-09-24T15:30:00.000Z",
+                  "books": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Meu Primeiro Livro",
+                    "author_id": "660e8400-e29b-41d4-a716-446655440001",
+                    "status": "published",
+                    "visibility": "public"
+                  }
+                }
+              }
+            }
+          }
+        },
+  
+        "reorder_chapters": {
+          "method": "PUT",
+          "url": "/v1/books/{id}/reorder-chapters",
+          "description": "Reordenar capítulos do livro",
+          "authentication": true,
+          "request": {
+            "headers": {
+              "Authorization": "Bearer TOKEN",
+              "Content-Type": "application/json"
+            },
+            "params": {
+              "id": "UUID do livro"
+            },
+            "body": {
+              "newOrder": [
+                {
+                  "chapterId": "770e8400-e29b-41d4-a716-446655440002",
+                  "newNumber": 2
+                },
+                {
+                  "chapterId": "880e8400-e29b-41d4-a716-446655440003",
+                  "newNumber": 1
+                }
+              ]
+            },
+            "validation": {
+              "newOrder": "array obrigatório com objetos {chapterId: UUID, newNumber: number}"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Capítulos reordenados com sucesso"
+              }
+            }
+          }
+        },
+  
+        "search_books": {
+          "method": "GET",
+          "url": "/v1/books/search",
+          "description": "Buscar livros por texto (full-text search)",
+          "authentication": false,
+          "request": {
+            "query_params": {
+              "q": "aventura fantasia",
+              "limit": "20",
+              "offset": "0"
+            },
+            "validation": {
+              "q": "string obrigatório, 1-100 caracteres",
+              "limit": "number opcional, 1-50, default: 20",
+              "offset": "number opcional, >= 0, default: 0"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Busca realizada com sucesso",
+                "data": [
+                  {
+                    "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Meu Primeiro Livro",
+                    "description": "Uma história incrível de aventura",
+                    "author_id": "660e8400-e29b-41d4-a716-446655440001",
+                    "cover_url": "https://res.cloudinary.com/librefy/covers/cover_550e8400.webp",
+                    "tags": ["aventura", "fantasia"],
+                    "likes_count": 15,
+                    "reads_count": 120,
+                    "published_at": "2025-09-24T15:30:00.000Z"
+                  }
+                ]
+              }
+            }
+          }
+        },
+  
+        "get_published_books": {
+          "method": "GET",
+          "url": "/v1/books/published",
+          "description": "Listar livros publicados (feed público)",
+          "authentication": false,
+          "request": {
+            "query_params": {
+              "limit": "20",
+              "offset": "0",
+              "orderBy": "published_at"
+            },
+            "validation": {
+              "limit": "number opcional, 1-50, default: 20",
+              "offset": "number opcional, >= 0, default: 0",
+              "orderBy": "enum: published_at|reads_count|likes_count|title, default: published_at"
+            }
+          },
+          "response": {
+            "success": {
+              "status": 200,
+              "body": {
+                "success": true,
+                "message": "Livros obtidos com sucesso",
+                "data": [
+                  {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Meu Primeiro Livro",
+                    "description": "Uma história incrível",
+                    "cover_url": "https://res.cloudinary.com/librefy/covers/cover_550e8400.webp",
+                    "tags": ["aventura", "fantasia"],
+                    "likes_count": 15,
+                    "reads_count": 120,
+                    "published_at": "2025-09-24T15:30:00.000Z",
+                    "created_at": "2025-09-24T14:30:00.000Z",
+                    "users": {
+                      "id": "660e8400-e29b-41d4-a716-446655440001",
+                      "name": "João Silva",
+                      "username": "joaosilva",
+                      "avatar_url": "https://example.com/avatar.jpg"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+  
+      "curl_examples": {
+      "create_book": "curl -X POST http://localhost:3000/v1/books -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"title\":\"Meu Livro\",\"description\":\"Uma história\",\"tags\":[\"aventura\"],\"visibility\":\"public\"}'",
+      
+      "get_book": "curl -X GET http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN'",
+      
+      "update_book": "curl -X PUT http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"title\":\"Título Atualizado\"}'",
+      
+      "delete_book": "curl -X DELETE http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN'",
+      
+      "upload_cover": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/cover -H 'Authorization: Bearer TOKEN' -F 'cover=@/path/to/image.jpg'",
+      
+      "publish_book": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/publish -H 'Authorization: Bearer TOKEN'",
+      
+      "unpublish_book": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/unpublish -H 'Authorization: Bearer TOKEN'",
+      
+      "archive_book": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/archive -H 'Authorization: Bearer TOKEN'",
+      
+      "like_book": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/like -H 'Authorization: Bearer TOKEN'",
+      
+      "get_my_books": "curl -X GET http://localhost:3000/v1/books/my/books -H 'Authorization: Bearer TOKEN'",
+      
+      "get_my_drafts": "curl -X GET 'http://localhost:3000/v1/books/my/books?status=draft' -H 'Authorization: Bearer TOKEN'",
+      
+      "add_chapter": "curl -X POST http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/chapters -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"title\":\"Capítulo 1\",\"content_md\":\"# Início\\n\\nEra uma vez...\"}'",
+      
+      "update_chapter": "curl -X PUT http://localhost:3000/v1/books/chapter/770e8400-e29b-41d4-a716-446655440002 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"title\":\"Capítulo Atualizado\"}'",
+      
+      "delete_chapter": "curl -X DELETE http://localhost:3000/v1/books/chapter/770e8400-e29b-41d4-a716-446655440002 -H 'Authorization: Bearer TOKEN'",
+      
+      "get_chapter": "curl -X GET http://localhost:3000/v1/books/chapter/770e8400-e29b-41d4-a716-446655440002",
+      
+      "get_book_chapters": "curl -X GET http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/chapters",
+      
+      "publish_chapter": "curl -X POST http://localhost:3000/v1/books/chapter/770e8400-e29b-41d4-a716-446655440002/publish -H 'Authorization: Bearer TOKEN'",
+      
+      "unpublish_chapter": "curl -X POST http://localhost:3000/v1/books/chapter/770e8400-e29b-41d4-a716-446655440002/unpublish -H 'Authorization: Bearer TOKEN'",
+      
+      "read_chapter": "curl -X GET http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/chapter/1",
+      
+      "reorder_chapters": "curl -X PUT http://localhost:3000/v1/books/550e8400-e29b-41d4-a716-446655440000/reorder-chapters -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"newOrder\":[{\"chapterId\":\"770e8400-e29b-41d4-a716-446655440002\",\"newNumber\":2},{\"chapterId\":\"880e8400-e29b-41d4-a716-446655440003\",\"newNumber\":1}]}'",
+      
+      "search_books": "curl -X GET 'http://localhost:3000/v1/books/search?q=aventura%20fantasia&limit=10'",
+      
+      "get_published_books": "curl -X GET 'http://localhost:3000/v1/books/published?limit=20&orderBy=likes_count'",
+      
+      "get_trending_books": "curl -X GET 'http://localhost:3000/v1/books/published?orderBy=reads_count&limit=10'"
+    },
+
+    "workflow_examples": {
+      "complete_book_creation": {
+        "description": "Fluxo completo de criação e publicação de um livro",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Criar livro",
+            "endpoint": "POST /v1/books",
+            "payload": {
+              "title": "As Crônicas de Eldoria",
+              "description": "Uma épica jornada através de terras místicas",
+              "tags": ["fantasia", "aventura", "magia"],
+              "visibility": "public"
+            }
+          },
+          {
+            "step": 2,
+            "action": "Upload da capa",
+            "endpoint": "POST /v1/books/{id}/cover",
+            "note": "Upload do arquivo de imagem"
+          },
+          {
+            "step": 3,
+            "action": "Adicionar primeiro capítulo",
+            "endpoint": "POST /v1/books/{id}/chapters",
+            "payload": {
+              "title": "Capítulo 1: O Chamado",
+              "content_md": "# O Chamado\n\nEm uma manhã nebulosa de outono, Lyra acordou com um som estranho vindo da floresta..."
+            }
+          },
+          {
+            "step": 4,
+            "action": "Adicionar mais capítulos",
+            "endpoint": "POST /v1/books/{id}/chapters",
+            "payload": {
+              "title": "Capítulo 2: A Descoberta",
+              "content_md": "# A Descoberta\n\nO artefato brilhava com uma luz azulada..."
+            }
+          },
+          {
+            "step": 5,
+            "action": "Publicar livro completo",
+            "endpoint": "POST /v1/books/{id}/publish",
+            "note": "Publica o livro e todos os capítulos automaticamente"
+          }
+        ]
+      },
+      
+      "gradual_publishing": {
+        "description": "Publicação gradual de capítulos",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Criar livro",
+            "endpoint": "POST /v1/books"
+          },
+          {
+            "step": 2,
+            "action": "Adicionar vários capítulos",
+            "endpoint": "POST /v1/books/{id}/chapters",
+            "note": "Adicionar múltiplos capítulos (ficam como rascunho)"
+          },
+          {
+            "step": 3,
+            "action": "Publicar capítulo específico",
+            "endpoint": "POST /v1/books/chapter/{chapterId}/publish",
+            "note": "Publicar capítulos individualmente"
+          },
+          {
+            "step": 4,
+            "action": "Publicar livro quando pronto",
+            "endpoint": "POST /v1/books/{id}/publish",
+            "note": "Marca livro como publicado e publica capítulos restantes"
+          }
+        ]
+      }
+    },
+
+    "common_use_cases": {
+      "author_dashboard": {
+        "description": "Obter dados para dashboard do autor",
+        "endpoints": [
+          "GET /v1/books/my/books - Listar todos os meus livros",
+          "GET /v1/books/my/books?status=draft - Rascunhos",
+          "GET /v1/books/my/books?status=published - Publicados"
+        ]
+      },
+      
+      "reading_experience": {
+        "description": "Experiência de leitura para usuários",
+        "endpoints": [
+          "GET /v1/books/published - Feed de livros",
+          "GET /v1/books/{id} - Detalhes do livro",
+          "GET /v1/books/{bookId}/chapter/{number} - Ler capítulo",
+          "POST /v1/books/{id}/like - Curtir livro"
+        ]
+      },
+      
+      "content_discovery": {
+        "description": "Descoberta de conteúdo",
+        "endpoints": [
+          "GET /v1/books/search?q=term - Buscar livros",
+          "GET /v1/books/published?orderBy=likes_count - Mais curtidos",
+          "GET /v1/books/published?orderBy=reads_count - Mais lidos"
+        ]
+      }
+    },
+
+    "data_models": {
+      "book": {
+        "id": "UUID",
+        "author_id": "UUID (foreign key to users)",
+        "title": "string (1-200 chars)",
+        "slug": "string (URL-friendly, unique)",
+        "description": "string (max 2000 chars, optional)",
+        "cover_url": "string (Cloudinary URL, optional)",
+        "status": "enum: draft|published|archived",
+        "visibility": "enum: public|unlisted|private",
+        "tags": "array of strings (max 10)",
+        "words_count": "integer (calculated from published chapters)",
+        "chapters_count": "integer (calculated automatically)",
+        "likes_count": "integer (calculated automatically)",
+        "reads_count": "integer (calculated automatically)",
+        "created_at": "timestamp",
+        "updated_at": "timestamp (auto-updated)",
+        "published_at": "timestamp (set when published)"
+      },
+      
+      "chapter": {
+        "id": "UUID",
+        "book_id": "UUID (foreign key to books)",
+        "author_id": "UUID (foreign key to users)",
+        "chapter_number": "integer (sequential per book)",
+        "title": "string (1-200 chars)",
+        "content_md": "text (Markdown content)",
+        "words_count": "integer (calculated automatically)",
+        "is_published": "boolean",
+        "created_at": "timestamp",
+        "updated_at": "timestamp (auto-updated)",
+        "published_at": "timestamp (set when published)"
+      }
+    },
+
+    "status_flow": {
+      "book_status": {
+        "draft": "Livro em rascunho, visível apenas para o autor",
+        "published": "Livro publicado, visível conforme visibility",
+        "archived": "Livro arquivado (soft delete)"
+      },
+      
+      "chapter_publication": {
+        "unpublished": "is_published: false, visível apenas para o autor",
+        "published": "is_published: true, visível para leitores"
+      },
+      
+      "visibility_levels": {
+        "public": "Visível para todos, aparece nas buscas",
+        "unlisted": "Visível para quem tem o link, não aparece nas buscas",
+        "private": "Visível apenas para o autor"
+      }
+    },
+
+    "features": {
+      "automatic_counters": [
+        "words_count calculado automaticamente via trigger",
+        "chapters_count atualizado quando capítulos são adicionados/removidos",
+        "likes_count incrementado/decrementado via toggle",
+        "reads_count incrementado com proteção anti-spam por IP/hora"
+      ],
+      
+      "full_text_search": [
+        "Busca em português com stemming",
+        "Pesos diferentes: título (A), descrição (B), tags (B), conteúdo (D)",
+        "View materializada para performance",
+        "Apenas livros published e public são indexados"
+      ],
+      
+      "slug_generation": [
+        "Gerado automaticamente do título",
+        "Remove acentos e caracteres especiais",
+        "Garante unicidade adicionando números",
+        "Atualizado quando título muda"
+      ],
+      
+      "image_management": [
+        "Upload via Cloudinary",
+        "Otimização automática (400x600, WebP)",
+        "Remoção automática de capas antigas",
+        "Limite de 5MB por arquivo"
+      ],
+      
+      "reading_analytics": [
+        "Contagem de leituras por IP/capítulo/hora",
+        "Prevenção de spam de leituras",
+        "Dados para análise de engajamento",
+        "Separação entre autor e leitor"
+      ]
+    },
+
+    "security_considerations": [
+      "Validação de propriedade em todas operações de escrita",
+      "Controle de visibilidade rigoroso",
+      "Sanitização de uploads de imagem",
+      "Rate limiting implícito via proteção anti-spam",
+      "Validação de schemas em todos os endpoints"
+    ],
+
+    "performance_optimizations": [
+      "Índices estratégicos em campos de busca",
+      "View materializada para full-text search",
+      "Contadores desnormalizados para evitar JOINs",
+      "Paginação em todas as listagens",
+      "Triggers otimizados para cálculos automáticos"
+    ],
+
+    "environment_variables": [
+      "CLOUDINARY_CLOUD_NAME=your_cloud_name",
+      "CLOUDINARY_API_KEY=your_api_key",
+      "CLOUDINARY_API_SECRET=your_api_secret"
+    ],
+
+    "maintenance_tasks": [
+      "REFRESH MATERIALIZED VIEW book_search; - Executar periodicamente",
+      "Limpeza de registros book_reads antigos",
+      "Monitoramento do uso do Cloudinary",
+      "Backup regular das views materializadas"
+    ],
+
+    "integration_notes": {
+      "mobile_app": [
+        "Endpoints otimizados para mobile (paginação pequena)",
+        "Suporte a leitura offline via cache",
+        "Compressão de imagens automática",
+        "Autenticação opcional para leitura pública"
+      ],
+      
+      "future_features": [
+        "Comentários em livros/capítulos",
+        "Sistema de avaliações (ratings)",
+        "Favoritos/biblioteca pessoal",
+        "Notificações de novos capítulos",
+        "Exportação EPUB/PDF"
+      ]
+    }
+  }
+}

@@ -16,6 +16,11 @@ const envSchema = z.object({
   STRIPE_PUBLISHABLE_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string(),
   STRIPE_PREMIUM_PRICE_ID: z.string(),
+  
+  // Configurações do Cloudinary
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
 });
 
 const parseEnv = () => {

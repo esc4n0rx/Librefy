@@ -1,5 +1,6 @@
 const { z } = require('zod');
 
+// Schemas existentes de autenticação
 const registerSchema = z.object({
   name: z.string()
     .min(2, 'Nome deve ter pelo menos 2 caracteres')
@@ -67,14 +68,130 @@ const changeEmailSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória para alterar email')
 });
 
-// Novos schemas para assinatura
+// Schemas de assinatura
 const createCheckoutSessionSchema = z.object({
   plan: z.string()
     .min(1, 'Plano é obrigatório')
     .refine(value => ['premium'].includes(value), 'Plano deve ser: premium')
 });
 
+// Novos schemas para livros e capítulos
+const createBookSchema = z.object({
+  title: z.string()
+    .min(1, 'Título é obrigatório')
+    .max(200, 'Título deve ter no máximo 200 caracteres')
+    .transform(val => val.trim()),
+  
+  description: z.string()
+    .max(2000, 'Descrição deve ter no máximo 2000 caracteres')
+    .transform(val => val?.trim())
+    .optional(),
+  
+  tags: z.array(z.string())
+    .max(10, 'Máximo 10 tags permitidas')
+    .optional()
+    .default([]),
+  
+  visibility: z.enum(['public', 'unlisted', 'private'])
+    .default('public')
+});
+
+const updateBookSchema = z.object({
+  title: z.string()
+    .min(1, 'Título é obrigatório')
+    .max(200, 'Título deve ter no máximo 200 caracteres')
+    .transform(val => val.trim())
+    .optional(),
+  
+  description: z.string()
+    .max(2000, 'Descrição deve ter no máximo 2000 caracteres')
+    .transform(val => val?.trim())
+    .optional(),
+  
+  tags: z.array(z.string())
+    .max(10, 'Máximo 10 tags permitidas')
+    .optional(),
+  
+  visibility: z.enum(['public', 'unlisted', 'private'])
+    .optional()
+});
+
+const createChapterSchema = z.object({
+  title: z.string()
+    .min(1, 'Título do capítulo é obrigatório')
+    .max(200, 'Título do capítulo deve ter no máximo 200 caracteres')
+    .transform(val => val.trim()),
+  
+  content_md: z.string()
+    .min(1, 'Conteúdo do capítulo é obrigatório')
+    .transform(val => val.trim()),
+  
+  chapter_number: z.number()
+    .int()
+    .min(1, 'Número do capítulo deve ser maior que 0')
+    .optional()
+});
+
+const updateChapterSchema = z.object({
+  title: z.string()
+    .min(1, 'Título do capítulo é obrigatório')
+    .max(200, 'Título do capítulo deve ter no máximo 200 caracteres')
+    .transform(val => val.trim())
+    .optional(),
+  
+  content_md: z.string()
+    .min(1, 'Conteúdo do capítulo é obrigatório')
+    .transform(val => val.trim())
+    .optional(),
+  
+  chapter_number: z.number()
+    .int()
+    .min(1, 'Número do capítulo deve ser maior que 0')
+    .optional()
+});
+
+const reorderChaptersSchema = z.object({
+  newOrder: z.array(
+    z.object({
+      chapterId: z.string().uuid('ID do capítulo inválido'),
+      newNumber: z.number().int().min(1, 'Número do capítulo deve ser maior que 0')
+    })
+  ).min(1, 'Lista de reordenação não pode estar vazia')
+});
+
+const searchBooksSchema = z.object({
+  q: z.string()
+    .min(1, 'Termo de busca é obrigatório')
+    .max(100, 'Termo de busca deve ter no máximo 100 caracteres'),
+  
+  limit: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val > 0 && val <= 50, 'Limite deve ser entre 1 e 50')
+    .default('20'),
+  
+  offset: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
+    .default('0')
+});
+
+const getPublishedBooksSchema = z.object({
+  limit: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val > 0 && val <= 50, 'Limite deve ser entre 1 e 50')
+    .default('20'),
+  
+  offset: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
+    .default('0'),
+  
+  orderBy: z.enum(['published_at', 'reads_count', 'likes_count', 'title'])
+    .default('published_at')
+});
+
 module.exports = {
+  // Schemas de autenticação
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
@@ -82,5 +199,16 @@ module.exports = {
   updateProfileSchema,
   changePasswordSchema,
   changeEmailSchema,
-  createCheckoutSessionSchema
+  
+  // Schemas de assinatura
+  createCheckoutSessionSchema,
+  
+  // Schemas de livros e capítulos
+  createBookSchema,
+  updateBookSchema,
+  createChapterSchema,
+  updateChapterSchema,
+  reorderChaptersSchema,
+  searchBooksSchema,
+  getPublishedBooksSchema
 };
