@@ -1,6 +1,5 @@
 const { z } = require('zod');
 
-// Schemas existentes de autenticação
 const registerSchema = z.object({
   name: z.string()
     .min(2, 'Nome deve ter pelo menos 2 caracteres')
@@ -190,8 +189,41 @@ const getPublishedBooksSchema = z.object({
     .default('published_at')
 });
 
+const addToLibrarySchema = z.object({
+  bookId: z.string()
+    .uuid('Book ID deve ser um UUID válido')
+});
+
+const createOfflineLicenseSchema = z.object({
+  deviceId: z.string()
+    .min(1, 'Device ID é obrigatório')
+    .max(100, 'Device ID deve ter no máximo 100 caracteres')
+});
+
+const renewOfflineLicenseSchema = z.object({
+  deviceId: z.string()
+    .min(1, 'Device ID é obrigatório')
+    .max(100, 'Device ID deve ter no máximo 100 caracteres')
+});
+
+const libraryQuerySchema = z.object({
+  limit: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val > 0 && val <= 50, 'Limite deve ser entre 1 e 50')
+    .default('20'),
+  
+  offset: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
+    .default('0'),
+
+  deviceId: z.string()
+    .max(100, 'Device ID deve ter no máximo 100 caracteres')
+    .optional()
+});
+
+
 module.exports = {
-  // Schemas de autenticação
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
@@ -200,15 +232,18 @@ module.exports = {
   changePasswordSchema,
   changeEmailSchema,
   
-  // Schemas de assinatura
   createCheckoutSessionSchema,
   
-  // Schemas de livros e capítulos
   createBookSchema,
   updateBookSchema,
   createChapterSchema,
   updateChapterSchema,
   reorderChaptersSchema,
   searchBooksSchema,
-  getPublishedBooksSchema
+  getPublishedBooksSchema,
+
+  addToLibrarySchema,
+  createOfflineLicenseSchema,
+  renewOfflineLicenseSchema,
+  libraryQuerySchema
 };

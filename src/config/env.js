@@ -17,10 +17,13 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string(),
   STRIPE_PREMIUM_PRICE_ID: z.string(),
   
-  // Configurações do Cloudinary
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
+
+  ENCRYPTION_SECRET: z.string().min(32, 'Encryption secret deve ter pelo menos 32 caracteres'),
+  SIGNED_URL_SECRET: z.string().min(32, 'Signed URL secret deve ter pelo menos 32 caracteres'),
+  STORAGE_BASE_URL: z.string().url().default('https://oiuidhjvmpeqomhwrapr.supabase.co/storage/v1/object/public/librefy/'),
 });
 
 const parseEnv = () => {

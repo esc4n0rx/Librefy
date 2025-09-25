@@ -2,7 +2,6 @@ const bookService = require('../services/book-service');
 
 class BookController {
 
-  // Livros
   async createBook(req, res, next) {
     try {
       const authorId = req.user.id;
@@ -162,10 +161,9 @@ class BookController {
     }
   }
 
-  // Capítulos
   async addChapter(req, res, next) {
     try {
-      const { id } = req.params; // book ID
+      const { id } = req.params;
       const authorId = req.user.id;
       
       const chapter = await bookService.addChapter(id, authorId, req.body);
@@ -232,7 +230,7 @@ class BookController {
 
   async getBookChapters(req, res, next) {
     try {
-      const { id } = req.params; // book ID
+      const { id } = req.params;
       const userId = req.user?.id;
       
       const chapters = await bookService.getBookChapters(id, userId);
@@ -308,7 +306,7 @@ class BookController {
 
   async reorderChapters(req, res, next) {
     try {
-      const { id } = req.params; // book ID
+      const { id } = req.params;
       const authorId = req.user.id;
       const { newOrder } = req.body;
       
@@ -322,8 +320,7 @@ class BookController {
       next(error);
     }
   }
-
-  // Funcionalidades públicas
+  
   async searchBooks(req, res, next) {
     try {
       const { q: query, limit = 20, offset = 0 } = req.query;

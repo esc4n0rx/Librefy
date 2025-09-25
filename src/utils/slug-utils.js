@@ -2,11 +2,11 @@ const generateSlug = (title) => {
     return title
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // remove acentos
-      .replace(/[^a-z0-9\s-]/g, '') // remove caracteres especiais
+      .replace(/[\u0300-\u036f]/g, '') 
+      .replace(/[^a-z0-9\s-]/g, '') 
       .trim()
-      .replace(/\s+/g, '-') // substitui espaços por hífens
-      .replace(/-+/g, '-'); // remove hífens duplicados
+      .replace(/\s+/g, '-') 
+      .replace(/-+/g, '-');
   };
   
   module.exports = {

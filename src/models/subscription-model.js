@@ -106,7 +106,6 @@ class SubscriptionModel {
     return data[0] || null;
   }
 
-  // Limpar assinaturas expiradas (executar periodicamente)
   async cleanExpiredSubscriptions() {
     const { error } = await supabaseAdmin
       .from('subscriptions')

@@ -1,10 +1,8 @@
 const multer = require('multer');
 
-// Configuração do multer para upload em memória
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  // Aceitar apenas imagens
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -16,14 +14,12 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
+    fileSize: 5 * 1024 * 1024 
   }
 });
 
-// Middleware específico para upload de capa
 const uploadBookCover = upload.single('cover');
 
-// Middleware com tratamento de erro
 const handleUploadError = (req, res, next) => {
   uploadBookCover(req, res, (err) => {
     if (err) {

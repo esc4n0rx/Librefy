@@ -2,13 +2,12 @@ const express = require('express');
 const authRoutes = require('./auth-routes');
 const subscriptionRoutes = require('./subscription-routes');
 const bookRoutes = require('./book-routes');
+const libraryRoutes = require('./library-routes'); 
 
 const router = express.Router();
 
-// Definir versão da API
 const API_VERSION = '/v1';
 
-// Health check
 router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -18,16 +17,14 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Rotas de autenticação
 router.use(`${API_VERSION}/auth`, authRoutes);
 
-// Rotas de assinatura
 router.use(`${API_VERSION}/subscription`, subscriptionRoutes);
 
-// Rotas de livros
 router.use(`${API_VERSION}/books`, bookRoutes);
 
-// Rota 404 para endpoints não encontrados
+router.use(`${API_VERSION}/library`, libraryRoutes);
+
 router.use((req, res) => {
   res.status(404).json({
     success: false,

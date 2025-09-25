@@ -1,6 +1,5 @@
 const subscriptionService = require('../services/subscription-service');
 
-// Middleware para verificar se usuário tem acesso a uma feature específica
 const requireFeature = (featureName) => {
   return async (req, res, next) => {
     try {
@@ -26,7 +25,6 @@ const requireFeature = (featureName) => {
   };
 };
 
-// Middleware para verificar se usuário tem Premium ativo
 const requirePremium = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -41,7 +39,6 @@ const requirePremium = async (req, res, next) => {
       });
     }
     
-    // Adicionar informações do plano ao request para uso posterior
     req.userPlan = subscription;
     next();
   } catch (error) {
@@ -52,14 +49,12 @@ const requirePremium = async (req, res, next) => {
   }
 };
 
-// Middleware para verificar limite de uso (ex: biblioteca offline)
 const checkUsageLimit = (featureName) => {
   return async (req, res, next) => {
     try {
       const userId = req.user.id;
       const limit = await subscriptionService.getFeatureLimit(userId, featureName);
       
-      // Adicionar limite ao request para uso no controller
       req.featureLimit = limit;
       next();
     } catch (error) {
@@ -71,7 +66,6 @@ const checkUsageLimit = (featureName) => {
   };
 };
 
-// Middleware para adicionar informações do plano ao request
 const attachPlanInfo = async (req, res, next) => {
   try {
     const userId = req.user.id;

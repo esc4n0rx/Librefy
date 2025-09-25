@@ -102,10 +102,9 @@ class UserModel {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  // Métodos para códigos de recuperação
   async createPasswordResetCode(userId, code) {
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
     
     const { data, error } = await supabaseAdmin
       .from('password_reset_codes')
@@ -157,7 +156,6 @@ class UserModel {
     }
   }
 
-  // Limpar códigos expirados (chamado periodicamente)
   async cleanExpiredResetCodes() {
     const { error } = await supabaseAdmin
       .from('password_reset_codes')

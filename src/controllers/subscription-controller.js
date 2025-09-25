@@ -68,7 +68,6 @@ class SubscriptionController {
     let event;
 
     try {
-      // Verificar se o webhook veio do Stripe
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
@@ -76,7 +75,6 @@ class SubscriptionController {
     }
 
     try {
-      // Processar o evento
       await subscriptionService.handleWebhook(event);
       
       res.status(200).json({
@@ -89,7 +87,6 @@ class SubscriptionController {
     }
   }
 
-  // Endpoint para verificar acesso a features (usado internamente)
   async checkFeatureAccess(req, res, next) {
     try {
       const userId = req.user.id;

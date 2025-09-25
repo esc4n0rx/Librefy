@@ -1,0 +1,678 @@
+{
+  "library_api_documentation": {
+    "base_url": "http://localhost:3000",
+    "version": "v1",
+    "description": "API da Biblioteca Pessoal do Librefy - Salvos e Offline",
+    "authentication": "JWT Bearer Token (obrigatório)",
+    "content_type": "application/json",
+    
+    "endpoints": {
+      
+      "add_to_library": {
+        "method": "POST",
+        "url": "/v1/library",
+        "description": "Adicionar livro à biblioteca pessoal (favoritos/salvos)",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "validation": {
+            "bookId": "string, UUID válido, obrigatório"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 201,
+            "body": {
+              "success": true,
+              "message": "Livro adicionado à biblioteca",
+              "data": {
+                "id": "660e8400-e29b-41d4-a716-446655440001",
+                "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                "added_at": "2025-09-25T14:30:00.000Z"
+              }
+            }
+          },
+          "already_added": {
+            "status": 201,
+            "body": {
+              "success": true,
+              "message": "Livro adicionado à biblioteca",
+              "data": {
+                "id": "660e8400-e29b-41d4-a716-446655440001",
+                "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                "added_at": "2025-09-24T10:15:00.000Z"
+              }
+            },
+            "note": "Operação idempotente - retorna dados existentes se já salvo"
+          },
+          "not_found": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Livro não encontrado"
+            }
+          },
+          "archived": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Não é possível salvar livros arquivados"
+            }
+          },
+          "private_access_denied": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Livro não encontrado"
+            }
+          }
+        }
+      },
+
+      "remove_from_library": {
+        "method": "DELETE",
+        "url": "/v1/library/{bookId}",
+        "description": "Remover livro da biblioteca pessoal",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Livro removido da biblioteca"
+            }
+          },
+          "not_in_library": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Livro não estava na biblioteca"
+            }
+          }
+        }
+      },
+
+      "get_library": {
+        "method": "GET",
+        "url": "/v1/library",
+        "description": "Listar biblioteca pessoal do usuário (paginada)",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "query_params": {
+            "limit": "20",
+            "offset": "0"
+          },
+          "validation": {
+            "limit": "number opcional, 1-50, default: 20",
+            "offset": "number opcional, >= 0, default: 0"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Biblioteca obtida com sucesso",
+              "data": [
+                {
+                  "id": "660e8400-e29b-41d4-a716-446655440001",
+                  "user_id": "770e8400-e29b-41d4-a716-446655440002",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "saved_at": "2025-09-25T14:30:00.000Z",
+                  "title": "As Aventuras de Eldoria",
+                  "description": "Uma épica jornada através de terras místicas",
+                  "cover_url": "https://res.cloudinary.com/librefy/image/upload/v1234/covers/cover_550e8400.webp",
+                  "status": "published",
+                  "words_count": 45000,
+                  "chapters_count": 12,
+                  "likes_count": 150,
+                  "reads_count": 2340,
+                  "published_at": "2025-09-20T10:00:00.000Z",
+                  "author_name": "João Silva",
+                  "author_username": "joaosilva",
+                  "author_avatar": "https://example.com/avatar.jpg"
+                }
+              ],
+              "pagination": {
+                "limit": 20,
+                "offset": 0,
+                "total": 1
+              }
+            }
+          },
+          "empty": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Biblioteca obtida com sucesso",
+              "data": [],
+              "pagination": {
+                "limit": 20,
+                "offset": 0,
+                "total": 0
+              }
+            }
+          }
+        }
+      },
+
+      "create_offline_license": {
+        "method": "POST",
+        "url": "/v1/library/{bookId}/offline",
+        "description": "Criar licença offline para um livro (com verificação de limite do plano)",
+        "authentication": true,
+        "middleware": "requirePlanLimit('offline_books')",
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "body": {
+            "deviceId": "android-device-123456"
+          },
+          "validation": {
+            "deviceId": "string, obrigatório, 1-100 caracteres"
+          }
+        },
+        "response": {
+          "success_new": {
+            "status": 201,
+            "body": {
+              "success": true,
+              "message": "Licença offline criada",
+              "data": {
+                "license": {
+                  "id": "880e8400-e29b-41d4-a716-446655440003",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "user_id": "770e8400-e29b-41d4-a716-446655440002",
+                  "device_id": "android-device-123456",
+                  "status": "active",
+                  "content_key_wrapped": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8=",
+                  "license_expires_at": "2025-10-25T14:30:00.000Z"
+                },
+                "manifest": {
+                  "version": 1,
+                  "manifest_url": "https://oiuidhjvmpeqomhwrapr.supabase.co/storage/v1/object/sign/librefy/manifests/550e8400/v1/manifest.json?token=abc123...",
+                  "package_url": "https://oiuidhjvmpeqomhwrapr.supabase.co/storage/v1/object/sign/librefy/packages/550e8400/v1/content.enc?token=def456...",
+                  "package_size": 1024000,
+                  "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            }
+          },
+          "success_existing": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Licença offline existente",
+              "data": {
+                "license": {
+                  "id": "880e8400-e29b-41d4-a716-446655440003",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "user_id": "770e8400-e29b-41d4-a716-446655440002",
+                  "device_id": "android-device-123456",
+                  "status": "active",
+                  "content_key_wrapped": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8=",
+                  "license_expires_at": "2025-10-25T14:30:00.000Z"
+                },
+                "manifest": {
+                  "version": 1,
+                  "manifest_url": "https://oiuidhjvmpeqomhwrapr.supabase.co/storage/v1/object/sign/librefy/manifests/550e8400/v1/manifest.json?token=ghi789...",
+                  "package_url": "https://oiuidhjvmpeqomhwrapr.supabase.co/storage/v1/object/sign/librefy/packages/550e8400/v1/content.enc?token=jkl012...",
+                  "package_size": 1024000,
+                  "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            "note": "Operação idempotente - retorna licença existente com URLs atualizadas"
+          },
+          "limit_exceeded": {
+            "status": 403,
+            "body": {
+              "success": false,
+              "message": "Limite do plano excedido",
+              "error": {
+                "code": "PLAN_LIMIT_EXCEEDED",
+                "resource": "offline_books",
+                "limit": 3,
+                "current": 3
+              },
+              "upgradeRequired": true
+            }
+          },
+          "book_not_found": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Livro não encontrado"
+            }
+          },
+          "archived": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Não é possível baixar livros arquivados"
+            }
+          }
+        }
+      },
+
+      "revoke_offline_license": {
+        "method": "DELETE",
+        "url": "/v1/library/{bookId}/offline",
+        "description": "Revogar licença offline do usuário",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "query_params": {
+            "deviceId": "android-device-123456"
+          },
+          "validation": {
+            "deviceId": "string, obrigatório via query param"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Licença offline revogada"
+            }
+          },
+          "not_found": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Licença não encontrada ou já revogada"
+            }
+          },
+          "missing_device_id": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Device ID é obrigatório"
+            }
+          }
+        }
+      },
+
+      "get_offline_licenses": {
+        "method": "GET",
+        "url": "/v1/library/offline",
+        "description": "Listar licenças offline do usuário",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "query_params": {
+            "deviceId": "android-device-123456"
+          },
+          "validation": {
+            "deviceId": "string opcional, filtrar por dispositivo específico"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Licenças offline obtidas com sucesso",
+              "data": [
+                {
+                  "license_id": "880e8400-e29b-41d4-a716-446655440003",
+                  "book": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "As Aventuras de Eldoria",
+                    "cover_url": "https://res.cloudinary.com/librefy/image/upload/v1234/covers/cover_550e8400.webp",
+                    "status": "published",
+                    "words_count": 45000,
+                    "chapters_count": 12
+                  },
+                  "device_id": "android-device-123456",
+                  "expires_at": "2025-10-25T14:30:00.000Z",
+                  "created_at": "2025-09-25T14:30:00.000Z"
+                }
+              ],
+              "total": 1
+            }
+          },
+          "empty": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Licenças offline obtidas com sucesso",
+              "data": [],
+              "total": 0
+            }
+          }
+        }
+      },
+
+      "renew_offline_license": {
+        "method": "POST",
+        "url": "/v1/library/{bookId}/offline/renew",
+        "description": "Renovar licença offline (+30 dias)",
+        "authentication": true,
+        "middleware": "attachPlanInfo (verificar se ainda tem acesso ao plano)",
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "body": {
+            "deviceId": "android-device-123456"
+          },
+          "validation": {
+            "deviceId": "string, obrigatório, 1-100 caracteres"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Licença renovada com sucesso",
+              "data": {
+                "license_id": "880e8400-e29b-41d4-a716-446655440003",
+                "expires_at": "2025-11-24T14:30:00.000Z"
+              }
+            }
+          },
+          "not_found": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Licença não encontrada"
+            }
+          },
+          "book_inaccessible": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Livro não encontrado"
+            }
+          }
+        }
+      },
+
+      "cleanup_expired": {
+        "method": "POST",
+        "url": "/v1/library/admin/cleanup-expired",
+        "description": "Endpoint administrativo para limpeza de licenças expiradas",
+        "authentication": true,
+        "note": "Para uso interno/cron jobs",
+        "request": {
+          "headers": {
+            "Authorization": "Bearer ADMIN_TOKEN"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Limpeza de licenças expiradas concluída"
+            }
+          }
+        }
+      }
+    },
+
+    "curl_examples": {
+      "add_to_library": "curl -X POST http://localhost:3000/v1/library -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"bookId\":\"550e8400-e29b-41d4-a716-446655440000\"}'",
+      
+      "remove_from_library": "curl -X DELETE http://localhost:3000/v1/library/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN'",
+      
+      "get_library": "curl -X GET 'http://localhost:3000/v1/library?limit=20&offset=0' -H 'Authorization: Bearer TOKEN'",
+      
+      "create_offline_license": "curl -X POST http://localhost:3000/v1/library/550e8400-e29b-41d4-a716-446655440000/offline -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"deviceId\":\"android-device-123456\"}'",
+      
+      "revoke_offline_license": "curl -X DELETE 'http://localhost:3000/v1/library/550e8400-e29b-41d4-a716-446655440000/offline?deviceId=android-device-123456' -H 'Authorization: Bearer TOKEN'",
+      
+      "get_offline_licenses": "curl -X GET 'http://localhost:3000/v1/library/offline?deviceId=android-device-123456' -H 'Authorization: Bearer TOKEN'",
+      
+      "renew_offline_license": "curl -X POST http://localhost:3000/v1/library/550e8400-e29b-41d4-a716-446655440000/offline/renew -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"deviceId\":\"android-device-123456\"}'",
+      
+      "cleanup_expired": "curl -X POST http://localhost:3000/v1/library/admin/cleanup-expired -H 'Authorization: Bearer ADMIN_TOKEN'"
+    },
+
+    "workflow_examples": {
+      "save_and_download_book": {
+        "description": "Fluxo completo: salvar livro na biblioteca e baixar offline",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Adicionar à biblioteca",
+            "endpoint": "POST /v1/library",
+            "payload": {"bookId": "550e8400-e29b-41d4-a716-446655440000"},
+            "note": "Salvar livro nos favoritos"
+          },
+          {
+            "step": 2,
+            "action": "Criar licença offline",
+            "endpoint": "POST /v1/library/{bookId}/offline",
+            "payload": {"deviceId": "android-device-123456"},
+            "note": "Gerar licença e URLs para download"
+          },
+          {
+            "step": 3,
+            "action": "Baixar manifesto",
+            "method": "GET",
+            "url": "signed_manifest_url_from_step2",
+            "note": "Download do manifesto JSON"
+          },
+          {
+            "step": 4,
+            "action": "Baixar pacote criptografado",
+            "method": "GET", 
+            "url": "signed_package_url_from_step2",
+            "note": "Download do conteúdo criptografado"
+          }
+        ]
+      },
+      
+      "manage_offline_content": {
+        "description": "Gerenciar conteúdo offline existente",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Listar conteúdo offline",
+            "endpoint": "GET /v1/library/offline"
+          },
+          {
+            "step": 2,
+            "action": "Verificar expirações próximas",
+            "note": "App verifica expires_at de cada licença"
+          },
+          {
+            "step": 3,
+            "action": "Renovar se necessário",
+            "endpoint": "POST /v1/library/{bookId}/offline/renew"
+          },
+          {
+            "step": 4,
+            "action": "Remover se não precisar mais",
+            "endpoint": "DELETE /v1/library/{bookId}/offline"
+          }
+        ]
+      }
+    },
+
+    "plan_limits": {
+      "free": {
+        "offline_books": 3,
+        "library_books": "unlimited",
+        "description": "Plano gratuito permite até 3 livros offline simultâneos"
+      },
+      "premium": {
+        "offline_books": 20,
+        "library_books": "unlimited", 
+        "description": "Premium Autor permite até 20 livros offline simultâneos"
+      }
+    },
+
+    "security_features": {
+      "content_encryption": [
+        "Conteúdo criptografado com AES-256-GCM",
+        "Chave única por livro/usuário/dispositivo",
+        "Chave envolvida (wrapped) com secret derivado do dispositivo"
+      ],
+      "access_control": [
+        "Verificação de ownership e status do livro",
+        "Limites de plano verificados server-side",
+        "Licenças com expiração (30 dias, renovável)"
+      ],
+      "signed_urls": [
+        "URLs do Supabase com expiração de 15 minutos",
+        "Não é possível acessar conteúdo sem licença válida",
+        "URLs regeneradas a cada acesso"
+      ]
+    },
+
+    "offline_flow_details": {
+      "manifest_structure": {
+        "version": 1,
+        "book": {
+          "id": "uuid",
+          "title": "string",
+          "description": "string",
+          "author": "string",
+          "cover_url": "string",
+          "tags": ["array"],
+          "created_at": "timestamp",
+          "updated_at": "timestamp"
+        },
+        "chapters": [
+          {
+            "id": "uuid",
+            "number": "integer",
+            "title": "string", 
+            "words_count": "integer",
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
+          }
+        ],
+        "metadata": {
+          "total_chapters": "integer",
+          "total_words": "integer",
+          "generated_at": "timestamp"
+        }
+      },
+      
+      "package_structure": {
+        "format": "Encrypted binary with AES-256-GCM",
+        "content": {
+          "book_metadata": "Basic book info",
+          "chapters": "Array com conteúdo completo em Markdown"
+        },
+        "decryption": "App usa content_key_wrapped + device_secret"
+      },
+      
+      "storage_paths": {
+        "manifest": "manifests/{bookId}/v1/manifest.json",
+        "package": "packages/{bookId}/v1/content.enc"
+      }
+    },
+
+    "error_codes": {
+      "PLAN_LIMIT_EXCEEDED": {
+        "description": "Usuário atingiu limite de livros offline do plano",
+        "action": "Sugerir upgrade ou remoção de conteúdo"
+      },
+      "LICENSE_EXPIRED": {
+        "description": "Licença offline expirou",
+        "action": "Renovar licença ou criar nova"
+      },
+      "BOOK_ARCHIVED": {
+        "description": "Livro foi arquivado pelo autor",
+        "action": "Conteúdo não disponível para download"
+      },
+      "DEVICE_ID_REQUIRED": {
+        "description": "Device ID não fornecido",
+        "action": "Incluir deviceId no payload/query"
+      }
+    },
+
+    "maintenance_tasks": {
+      "daily": [
+        "POST /v1/library/admin/cleanup-expired - Limpar licenças expiradas"
+      ],
+      "weekly": [
+        "Verificar uso do storage Supabase",
+        "Limpar manifestos e pacotes órfãos"
+      ],
+      "monitoring": [
+        "Acompanhar limites de plano por usuário",
+        "Monitorar downloads e renewals",
+        "Alertas para storage quase cheio"
+      ]
+    },
+
+    "integration_notes": {
+      "mobile_app": [
+        "App deve armazenar deviceId localmente (UUID persistente)",
+        "Verificar expires_at antes de usar conteúdo offline",
+        "Renovar licenças próximas do vencimento automaticamente",
+        "Descriptografar conteúdo usando content_key_wrapped + device_secret"
+      ],
+      
+      "web_app": [
+        "Biblioteca pessoal funciona normalmente",
+        "Offline pode ser limitado ou desabilitado",
+        "deviceId pode ser browser fingerprint ou localStorage UUID"
+      ]
+    },
+
+    "testing_scenarios": {
+      "happy_path": [
+        "1. Usuário adiciona livro à biblioteca",
+        "2. Cria licença offline dentro do limite",
+        "3. Baixa manifesto e pacote com sucesso",
+        "4. Renova licença antes do vencimento"
+      ],
+      
+      "edge_cases": [
+        "Limite de plano atingido",
+        "Livro arquivado após download",
+        "Licença expirada",
+        "Device ID inválido/faltante",
+        "Signed URLs expiradas"
+      ],
+      
+      "load_testing": [
+        "Múltiplos downloads simultâneos",
+        "Muitas renovações em paralelo",
+        "Storage Supabase sob carga"
+      ]
+    }
+  }
+}

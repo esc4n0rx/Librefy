@@ -121,7 +121,6 @@ class AuthController {
     }
   }
 
-  // Endpoint para verificar se token é válido
   async verifyToken(req, res, next) {
     try {
       const userId = req.user.id;
@@ -145,7 +144,6 @@ class AuthController {
     }
   }
 
-  // Endpoint para logout (opcional - cliente pode apenas remover token)
   async logout(req, res, next) {
     try {
       res.status(200).json({

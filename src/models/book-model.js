@@ -73,7 +73,6 @@ class BookModel {
   }
 
   async update(id, updates) {
-    // Limpar campos vazios
     const cleanUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
       if (value !== undefined && value !== null) {
         if (typeof value === 'string') {
@@ -85,7 +84,6 @@ class BookModel {
       return acc;
     }, {});
 
-    // Sempre atualizar updated_at
     cleanUpdates.updated_at = new Date().toISOString();
 
     const { data, error } = await supabaseAdmin
@@ -117,10 +115,10 @@ class BookModel {
     const baseSlug = title
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // remove acentos
-      .replace(/[^a-z0-9\s-]/g, '') // remove caracteres especiais
+      .replace(/[\u0300-\u036f]/g, '') 
+      .replace(/[^a-z0-9\s-]/g, '') 
       .trim()
-      .replace(/\s+/g, '-'); // substitui espaços por hífens
+      .replace(/\s+/g, '-');
 
     let slug = baseSlug;
     let counter = 1;
@@ -131,7 +129,6 @@ class BookModel {
         .select('id')
         .eq('slug', slug);
 
-      // Se estamos atualizando um livro, excluir ele mesmo da busca
       if (bookId) {
         query = query.neq('id', bookId);
       }
@@ -140,12 +137,10 @@ class BookModel {
       
       if (error) throw error;
       
-      // Se não encontrou nenhum com esse slug, está livre
       if (!data || data.length === 0) {
         return slug;
       }
       
-      // Tentar próximo número
       counter++;
       slug = `${baseSlug}-${counter}`;
     }
@@ -154,7 +149,6 @@ class BookModel {
   async publish(id) {
     const now = new Date().toISOString();
     
-    // Primeiro, publicar todos os capítulos do livro
     await supabaseAdmin
       .from('chapters')
       .update({ 
@@ -164,7 +158,6 @@ class BookModel {
       .eq('book_id', id)
       .eq('is_published', false);
 
-    // Depois, atualizar o livro
     const { data, error } = await supabaseAdmin
       .from('books')
       .update({ 
@@ -182,7 +175,6 @@ class BookModel {
     
     if (error) throw error;
 
-    // Refresh da view de busca em background
     supabaseAdmin.rpc('refresh_book_search').catch(console.error);
     
     return data;
@@ -191,7 +183,6 @@ class BookModel {
   async unpublish(id) {
     const now = new Date().toISOString();
     
-    // Primeiro, despublicar todos os capítulos
     await supabaseAdmin
       .from('chapters')
       .update({ 
@@ -200,7 +191,6 @@ class BookModel {
       })
       .eq('book_id', id);
 
-    // Depois, atualizar o livro
     const { data, error } = await supabaseAdmin
       .from('books')
       .update({ 
@@ -218,7 +208,6 @@ class BookModel {
     
     if (error) throw error;
 
-    // Refresh da view de busca em background
     supabaseAdmin.rpc('refresh_book_search').catch(console.error);
     
     return data;
@@ -281,7 +270,6 @@ class BookModel {
 
   async incrementRead(bookId, userId = null, ipAddress = null, userAgent = null) {
     try {
-      // Registrar leitura (com proteção anti-spam)
       await supabaseAdmin
         .from('book_reads')
         .insert([{
@@ -291,7 +279,6 @@ class BookModel {
           user_agent: userAgent
         }]);
 
-      // Atualizar contador
       await supabaseAdmin
         .from('books')
         .update({ 
@@ -301,16 +288,14 @@ class BookModel {
 
       return true;
     } catch (error) {
-      // Se falhou por duplicata (anti-spam), não é erro
       if (error.code === '23505') {
-        return false; // Já contabilizado
+        return false; 
       }
       throw error;
     }
   }
 
   async toggleLike(bookId, userId) {
-    // Verificar se já curtiu
     const { data: existing } = await supabaseAdmin
       .from('book_likes')
       .select('user_id')
@@ -319,14 +304,12 @@ class BookModel {
       .single();
 
     if (existing) {
-      // Remover curtida
       await supabaseAdmin
         .from('book_likes')
         .delete()
         .eq('book_id', bookId)
         .eq('user_id', userId);
 
-      // Decrementar contador
       await supabaseAdmin
         .from('books')
         .update({ 
