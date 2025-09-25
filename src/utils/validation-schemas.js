@@ -222,6 +222,56 @@ const libraryQuerySchema = z.object({
     .optional()
 });
 
+const rateBookSchema = z.object({
+  rating: z.number()
+    .int('Rating deve ser um número inteiro')
+    .min(1, 'Rating deve ser no mínimo 1')
+    .max(5, 'Rating deve ser no máximo 5')
+});
+
+const createCommentSchema = z.object({
+  content: z.string()
+    .min(1, 'Conteúdo do comentário é obrigatório')
+    .max(1000, 'Comentário deve ter no máximo 1000 caracteres')
+    .transform(val => val.trim()),
+  
+  parent_comment_id: z.string()
+    .uuid('Parent comment ID deve ser um UUID válido')
+    .optional()
+});
+
+const updateCommentSchema = z.object({
+  content: z.string()
+    .min(1, 'Conteúdo do comentário é obrigatório')
+    .max(1000, 'Comentário deve ter no máximo 1000 caracteres')
+    .transform(val => val.trim())
+});
+
+const getCommentsSchema = z.object({
+  limit: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val > 0 && val <= 100, 'Limite deve ser entre 1 e 100')
+    .default('50'),
+  
+  offset: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
+    .default('0')
+});
+
+const getRatingsSchema = z.object({
+  limit: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val > 0 && val <= 50, 'Limite deve ser entre 1 e 50')
+    .default('20'),
+  
+  offset: z.string()
+    .transform(val => parseInt(val))
+    .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
+    .default('0')
+});
+
+
 
 module.exports = {
   registerSchema,
@@ -245,5 +295,11 @@ module.exports = {
   addToLibrarySchema,
   createOfflineLicenseSchema,
   renewOfflineLicenseSchema,
-  libraryQuerySchema
+  libraryQuerySchema,
+
+  rateBookSchema,
+  createCommentSchema,
+  updateCommentSchema,
+  getCommentsSchema,
+  getRatingsSchema
 };

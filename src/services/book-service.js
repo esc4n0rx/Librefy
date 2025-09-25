@@ -446,6 +446,14 @@ class BookService {
   
       return chapter;
     }
+
+    async getPublishedBooksWithRatings(limit = 20, offset = 0, orderBy = 'published_at') {
+    const validOrders = ['published_at', 'reads_count', 'likes_count', 'title', 'average_rating', 'ratings_count'];
+    const order = validOrders.includes(orderBy) ? orderBy : 'published_at';
+
+    const books = await bookModel.findPublishedWithRatings(limit, offset, order);
+    return books;
+  }
   
     async reorderChapters(bookId, authorId, newOrder) {
       // Verificar propriedade

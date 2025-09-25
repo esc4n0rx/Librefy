@@ -1,0 +1,424 @@
+{
+  "comments_ratings_api_documentation": {
+    "base_url": "http://localhost:3000",
+    "version": "v1",
+    "description": "API de Comentários e Avaliações do Librefy",
+    "authentication": "JWT Bearer Token (algumas rotas públicas)",
+    "content_type": "application/json",
+    
+    "endpoints": {
+      
+      "rate_book": {
+        "method": "POST",
+        "url": "/v1/ratings/book/{bookId}",
+        "description": "Avaliar um livro (1-5 estrelas)",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "body": {
+            "rating": 5
+          },
+          "validation": {
+            "rating": "number, integer, 1-5, obrigatório"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Avaliação registrada com sucesso",
+              "data": {
+                "rating": {
+                  "id": "770e8400-e29b-41d4-a716-446655440002",
+                  "rating": 5,
+                  "created_at": "2025-09-25T14:30:00.000Z",
+                  "updated_at": "2025-09-25T14:30:00.000Z"
+                },
+                "stats": {
+                  "average_rating": 4.8,
+                  "ratings_count": 25
+                }
+              }
+            }
+          },
+          "self_rating": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Você não pode avaliar seu próprio livro"
+            }
+          },
+          "unpublished": {
+            "status": 400,
+            "body": {
+              "success": false,
+              "message": "Só é possível avaliar livros publicados"
+            }
+          }
+        }
+      },
+
+      "remove_rating": {
+        "method": "DELETE",
+        "url": "/v1/ratings/book/{bookId}",
+        "description": "Remover avaliação do livro",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer TOKEN"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Avaliação removida com sucesso",
+              "data": {
+                "stats": {
+                  "average_rating": 4.7,
+                  "ratings_count": 24
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "get_book_rating_stats": {
+        "method": "GET",
+        "url": "/v1/ratings/book/{bookId}/stats",
+        "description": "Obter estatísticas de avaliações do livro",
+        "authentication": false,
+        "request": {
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Estatísticas de avaliação obtidas com sucesso",
+              "data": {
+                "average_rating": 4.8,
+                "ratings_count": 25,
+                "distribution": {
+                  "1": 0,
+                  "2": 1,
+                  "3": 2,
+                  "4": 7,
+                  "5": 15
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "create_comment": {
+        "method": "POST",
+        "url": "/v1/comments/book/{bookId}",
+        "description": "Criar comentário em um livro",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer TOKEN",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "body": {
+            "content": "Excelente livro! A narrativa é envolvente e os personagens bem desenvolvidos.",
+            "parent_comment_id": null
+          },
+          "validation": {
+            "content": "string, 1-1000 caracteres, obrigatório",
+            "parent_comment_id": "UUID opcional, para respostas"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 201,
+            "body": {
+              "success": true,
+              "message": "Comentário criado com sucesso",
+              "data": {
+                "id": "880e8400-e29b-41d4-a716-446655440003",
+                "user_id": "660e8400-e29b-41d4-a716-446655440001",
+                "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                "parent_comment_id": null,
+                "content": "Excelente livro! A narrativa é envolvente e os personagens bem desenvolvidos.",
+                "is_deleted": false,
+                "created_at": "2025-09-25T14:30:00.000Z",
+                "updated_at": "2025-09-25T14:30:00.000Z"
+              }
+            }
+          }
+        }
+      },
+
+      "get_book_comments": {
+        "method": "GET",
+        "url": "/v1/comments/book/{bookId}",
+        "description": "Listar comentários de um livro (apenas principais, sem replies)",
+        "authentication": false,
+        "note": "Auth opcional. Apenas comentários principais são listados",
+        "request": {
+          "headers": {
+            "Authorization": "Bearer TOKEN (opcional)"
+          },
+          "params": {
+            "bookId": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "query_params": {
+            "limit": "50",
+            "offset": "0"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Comentários obtidos com sucesso",
+              "data": [
+                {
+                  "id": "880e8400-e29b-41d4-a716-446655440003",
+                  "user_id": "660e8400-e29b-41d4-a716-446655440001",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "parent_comment_id": null,
+                  "content": "Excelente livro! A narrativa é envolvente.",
+                  "is_deleted": false,
+                  "created_at": "2025-09-25T14:30:00.000Z",
+                  "updated_at": "2025-09-25T14:30:00.000Z",
+                  "user_name": "João Silva",
+                  "user_username": "joaosilva",
+                  "user_avatar": "https://example.com/avatar.jpg",
+                  "reply_count": 3
+                }
+              ],
+              "pagination": {
+                "limit": 50,
+                "offset": 0,
+                "total": 1
+              }
+            }
+          }
+        }
+      },
+
+      "get_comment_replies": {
+        "method": "GET",
+        "url": "/v1/comments/{commentId}/replies",
+        "description": "Listar respostas de um comentário específico",
+        "authentication": false,
+        "request": {
+          "params": {
+            "commentId": "880e8400-e29b-41d4-a716-446655440003"
+          },
+          "query_params": {
+            "limit": "20",
+            "offset": "0"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Respostas obtidas com sucesso",
+              "data": [
+                {
+                  "id": "990e8400-e29b-41d4-a716-446655440004",
+                  "user_id": "770e8400-e29b-41d4-a716-446655440002",
+                  "book_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "parent_comment_id": "880e8400-e29b-41d4-a716-446655440003",
+                  "content": "Concordo totalmente! O desenvolvimento do protagonista é fantástico.",
+                  "is_deleted": false,
+                  "created_at": "2025-09-25T15:00:00.000Z",
+                  "updated_at": "2025-09-25T15:00:00.000Z",
+                  "user_name": "Maria Santos",
+                  "user_username": "mariasantos",
+                  "user_avatar": "https://example.com/avatar2.jpg"
+                }
+              ],
+              "pagination": {
+                "limit": 20,
+                "offset": 0,
+                "total": 1
+              }
+            }
+          }
+        }
+      },
+
+      "update_comment": {
+        "method": "PUT",
+        "url": "/v1/comments/{commentId}",
+        "description": "Atualizar próprio comentário",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer TOKEN",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "commentId": "880e8400-e29b-41d4-a716-446655440003"
+          },
+          "body": {
+            "content": "Excelente livro! A narrativa é muito envolvente e os personagens são bem desenvolvidos."
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Comentário atualizado com sucesso",
+              "data": {
+                "id": "880e8400-e29b-41d4-a716-446655440003",
+                "content": "Excelente livro! A narrativa é muito envolvente e os personagens são bem desenvolvidos.",
+                "updated_at": "2025-09-25T16:00:00.000Z"
+              }
+            }
+          }
+        }
+      },
+
+      "delete_comment": {
+        "method": "DELETE",
+        "url": "/v1/comments/{commentId}",
+        "description": "Deletar comentário (próprio ou como moderador se for autor do livro)",
+        "authentication": true,
+        "request": {
+          "headers": {
+            "Authorization": "Bearer TOKEN"
+          },
+          "params": {
+            "commentId": "880e8400-e29b-41d4-a716-446655440003"
+          }
+        },
+        "response": {
+          "success": {
+            "status": 200,
+            "body": {
+              "success": true,
+              "message": "Comentário deletado com sucesso"
+            }
+          }
+        }
+      }
+    },
+
+    "curl_examples": {
+      "rate_book": "curl -X POST http://localhost:3000/v1/ratings/book/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"rating\":5}'",
+      
+      "remove_rating": "curl -X DELETE http://localhost:3000/v1/ratings/book/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN'",
+      
+      "get_book_rating_stats": "curl -X GET http://localhost:3000/v1/ratings/book/550e8400-e29b-41d4-a716-446655440000/stats",
+      
+      "create_comment": "curl -X POST http://localhost:3000/v1/comments/book/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"content\":\"Excelente livro!\"}'",
+      
+      "create_reply": "curl -X POST http://localhost:3000/v1/comments/book/550e8400-e29b-41d4-a716-446655440000 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"content\":\"Concordo!\",\"parent_comment_id\":\"880e8400-e29b-41d4-a716-446655440003\"}'",
+      
+      "get_book_comments": "curl -X GET 'http://localhost:3000/v1/comments/book/550e8400-e29b-41d4-a716-446655440000?limit=50'",
+      
+      "get_comment_replies": "curl -X GET 'http://localhost:3000/v1/comments/880e8400-e29b-41d4-a716-446655440003/replies?limit=20'",
+      
+      "update_comment": "curl -X PUT http://localhost:3000/v1/comments/880e8400-e29b-41d4-a716-446655440003 -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' -d '{\"content\":\"Comentário editado\"}'",
+      
+      "delete_comment": "curl -X DELETE http://localhost:3000/v1/comments/880e8400-e29b-41d4-a716-446655440003 -H 'Authorization: Bearer TOKEN'"
+    },
+
+    "features": {
+      "ratings_system": [
+        "Avaliações de 1-5 estrelas por usuário/livro",
+        "Média calculada automaticamente via triggers",
+        "Distribuição de ratings disponível",
+        "Não permite autoavaliação",
+        "Apenas livros publicados podem ser avaliados"
+      ],
+      
+      "comments_system": [
+        "Comentários hierárquicos com replies/threads",
+        "Soft delete para moderação",
+        "Autor do livro pode deletar qualquer comentário",
+        "Usuário pode editar/deletar próprios comentários",
+        "Limite de 1000 caracteres por comentário"
+      ],
+      
+      "moderation": [
+        "Autor do livro tem poderes de moderador",
+        "Soft delete preserva estrutura hierárquica",
+        "Registra quem deletou o comentário",
+        "Comentários deletados não aparecem nas listagens"
+      ]
+    },
+
+    "integration_impact": {
+      "book_search": [
+        "Busca pode ser ordenada por average_rating",
+        "Busca pode ser ordenada por ratings_count",
+        "Estatísticas incluídas nos resultados"
+      ],
+      
+      "book_listing": [
+        "GET /v1/books/published agora inclui:",
+        "- average_rating",
+        "- ratings_count", 
+        "- comments_count",
+        "Novos orderBy: 'average_rating', 'ratings_count'"
+      ],
+      
+      "book_details": [
+        "GET /v1/books/{id} inclui estatísticas completas",
+        "Links para endpoints de comentários e ratings"
+      ]
+    },
+
+    "database_design": {
+      "book_ratings": {
+        "primary_key": "id (UUID)",
+        "unique_constraint": "user_id + book_id",
+        "rating_range": "1-5 (validated)",
+        "auto_stats": "Triggers atualizam books.average_rating e ratings_count"
+      },
+      
+      "book_comments": {
+        "primary_key": "id (UUID)", 
+        "hierarchical": "parent_comment_id para threads",
+        "soft_delete": "is_deleted + deleted_by + deleted_at",
+        "content_limit": "1000 caracteres máximo",
+        "auto_count": "Trigger atualiza books.comments_count"
+      },
+      
+      "performance": [
+        "Índices em book_id, user_id, parent_comment_id",
+        "View materializada book_comments_with_users",
+        "Função SQL para comentários hierárquicos",
+        "Contadores desnormalizados para evitar JOINs"
+      ]
+    },
+
+    "security_considerations": [
+      "Validação de propriedade para edição/exclusão",
+      "Verificação de status do livro (published)",
+      "Prevenção de autoavaliação",
+      "Sanitização de conteúdo de comentários",
+      "Rate limiting implícito via unique constraints"
+    ]
+  }
+}

@@ -295,6 +295,27 @@ class BookModel {
     }
   }
 
+
+  async findPublishedWithRatings(limit = 20, offset = 0, orderBy = 'published_at') {
+    const validOrders = ['published_at', 'reads_count', 'likes_count', 'title', 'average_rating', 'ratings_count'];
+    const order = validOrders.includes(orderBy) ? orderBy : 'published_at';
+
+    const { data, error } = await supabaseAdmin
+      .from('books')
+      .select(`
+        id, title, description, cover_url, tags, likes_count, reads_count,
+        average_rating, ratings_count, comments_count, published_at, created_at,
+        users!inner(id, name, username, avatar_url)
+      `)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .order(order, { ascending: false })
+      .range(offset, offset + limit - 1);
+    
+    if (error) throw error;
+    return data;
+  }
+
   async toggleLike(bookId, userId) {
     const { data: existing } = await supabaseAdmin
       .from('book_likes')

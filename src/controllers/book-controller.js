@@ -320,7 +320,7 @@ class BookController {
       next(error);
     }
   }
-  
+
   async searchBooks(req, res, next) {
     try {
       const { q: query, limit = 20, offset = 0 } = req.query;
@@ -349,24 +349,24 @@ class BookController {
   }
 
   async getPublishedBooks(req, res, next) {
-    try {
-      const { limit = 20, offset = 0, orderBy = 'published_at' } = req.query;
-      
-      const books = await bookService.getPublishedBooks(
-        parseInt(limit), 
-        parseInt(offset), 
-        orderBy
-      );
-      
-      res.status(200).json({
-        success: true,
-        message: 'Livros obtidos com sucesso',
-        data: books
-      });
-    } catch (error) {
-      next(error);
-    }
+  try {
+    const { limit = 20, offset = 0, orderBy = 'published_at' } = req.query;
+    
+    const books = await bookService.getPublishedBooksWithRatings(
+      parseInt(limit), 
+      parseInt(offset), 
+      orderBy
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Livros obtidos com sucesso',
+      data: books
+    });
+  } catch (error) {
+    next(error);
   }
+}
 
   async likeBook(req, res, next) {
     try {
