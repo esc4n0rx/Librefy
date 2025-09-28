@@ -17,6 +17,8 @@ const validateBody = (schema) => {
           }))
         });
       }
+      
+      // Para outros tipos de erro, passar para o middleware de erro global
       next(error);
     }
   };
@@ -39,6 +41,8 @@ const validateQuery = (schema) => {
           }))
         });
       }
+      
+      // Para outros tipos de erro, passar para o middleware de erro global
       next(error);
     }
   };

@@ -31,7 +31,7 @@ class BookModel {
         id, author_id, title, slug, description, cover_url, status, visibility, tags,
         words_count, chapters_count, likes_count, reads_count,
         created_at, updated_at, published_at,
-        users!inner(id, name, username, avatar_url)
+        users!books_author_id_fkey(id, name, username, avatar_url)
       `)
       .eq('id', id);
 
@@ -257,7 +257,7 @@ class BookModel {
       .select(`
         id, title, description, cover_url, tags, likes_count, reads_count,
         published_at, created_at,
-        users!inner(id, name, username, avatar_url)
+        users!books_author_id_fkey(id, name, username, avatar_url)
       `)
       .eq('status', 'published')
       .eq('visibility', 'public')
@@ -295,7 +295,6 @@ class BookModel {
     }
   }
 
-
   async findPublishedWithRatings(limit = 20, offset = 0, orderBy = 'published_at') {
     const validOrders = ['published_at', 'reads_count', 'likes_count', 'title', 'average_rating', 'ratings_count'];
     const order = validOrders.includes(orderBy) ? orderBy : 'published_at';
@@ -305,7 +304,7 @@ class BookModel {
       .select(`
         id, title, description, cover_url, tags, likes_count, reads_count,
         average_rating, ratings_count, comments_count, published_at, created_at,
-        users!inner(id, name, username, avatar_url)
+        users!books_author_id_fkey(id, name, username, avatar_url)
       `)
       .eq('status', 'published')
       .eq('visibility', 'public')

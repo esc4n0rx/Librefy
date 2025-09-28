@@ -185,7 +185,7 @@ const getPublishedBooksSchema = z.object({
     .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
     .default('0'),
   
-  orderBy: z.enum(['published_at', 'reads_count', 'likes_count', 'title'])
+  orderBy: z.enum(['published_at', 'reads_count', 'likes_count', 'title', 'average_rating', 'ratings_count'])
     .default('published_at')
 });
 
@@ -270,8 +270,6 @@ const getRatingsSchema = z.object({
     .refine(val => !isNaN(val) && val >= 0, 'Offset deve ser maior ou igual a 0')
     .default('0')
 });
-
-
 
 module.exports = {
   registerSchema,
