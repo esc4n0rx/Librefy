@@ -1,7 +1,8 @@
+// components/ui/icon-symbol.tsx (ATUALIZADO - adicionar novos ícones)
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
+import { SymbolViewProps, SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
@@ -18,6 +19,16 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
+  'envelope.fill': 'email',
+  'lock.fill': 'lock',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
+  'phone.fill': 'phone',
+  'checkmark.circle.fill': 'check-circle',
+  'g.circle.fill': 'g-translate',
+  'bird.fill': 'flutter-dash',
+  'f.circle.fill': 'facebook',
 } as IconMapping;
 
 /**
