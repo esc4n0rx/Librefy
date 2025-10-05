@@ -1,14 +1,14 @@
-// app/(tabs)/explore.tsx
+// app/(tabs)/discover.tsx
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { StyleSheet, View } from 'react-native';
 
-export default function ExploreScreen() {
+export default function DiscoverScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.content}>
-        <ThemedText type="title">Explorar</ThemedText>
+        <ThemedText type="title">Descobrir</ThemedText>
         <ThemedText style={styles.description}>
           Em breve você poderá descobrir milhares de histórias incríveis.
         </ThemedText>
