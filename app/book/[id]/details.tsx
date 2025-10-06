@@ -1,5 +1,3 @@
-// app/book/[id]/details.tsx
-
 import { AddToLibraryButton } from '@/components/books/add-to-library-button';
 import { RatingStars } from '@/components/books/rating-stars';
 import { ReviewCard } from '@/components/books/review-card';
@@ -50,7 +48,6 @@ export default function BookDetailsScreen() {
   const textSecondary = Colors[colorScheme].textSecondary;
   const placeholderColor = Colors[colorScheme].textSecondary;
 
-  // State
   const [book, setBook] = useState<Book | null>(null);
   const [stats, setStats] = useState<BookStats | null>(null);
   const [reviews, setReviews] = useState<BookReview[]>([]);
@@ -62,7 +59,6 @@ export default function BookDetailsScreen() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'reviews'>('about');
 
-  // Load authenticated images
   const { authenticatedUrl: coverUrl, loading: coverLoading } = useImageAuth(
     book?.cover_url
   );
@@ -82,14 +78,11 @@ export default function BookDetailsScreen() {
     try {
       setLoading(true);
 
-      // Carregar detalhes do livro
       const bookData = await DiscoverService.getBookDetails(id);
       setBook(bookData);
 
-      // Incrementar views
       await DiscoverService.incrementBookViews(id);
 
-      // Carregar estatísticas e reviews
       const [statsData, reviewsData] = await Promise.all([
         ReviewService.getBookStats(id),
         ReviewService.getBookReviews(id, 1, 10),
@@ -98,7 +91,6 @@ export default function BookDetailsScreen() {
       setStats(statsData);
       setReviews(reviewsData);
 
-      // Carregar review do usuário se logado
       if (user) {
         const userReviewData = await ReviewService.getUserReview(user.id, id);
         setUserReview(userReviewData);
@@ -116,22 +108,22 @@ export default function BookDetailsScreen() {
   };
 
   const handleReadBook = async () => {
-    if (!book) return;
-  
+    if (!book || !id) return;
+
     try {
-      const chapters = await BookService.getBookChapters(book.id);
-  
+
+      const chapters = await BookService.getBookChapters(id);
+
       if (chapters.length === 0) {
         Alert.alert('Aviso', 'Este livro ainda não possui capítulos disponíveis.');
         return;
       }
-  
-      // Verificar se há progresso salvo
+
       let targetChapter = chapters[0];
-  
+
       if (user) {
         try {
-          const progress = await ReadingService.getProgress(user.id, book.id);
+          const progress = await ReadingService.getProgress(user.id, id);
           if (progress && progress.chapter_id) {
             const savedChapter = chapters.find((ch) => ch.id === progress.chapter_id);
             if (savedChapter) {
@@ -142,10 +134,10 @@ export default function BookDetailsScreen() {
           console.log('Erro ao buscar progresso:', error);
         }
       }
-  
-      // Navegar para o leitor
-      router.push(`/book/${book.id}/read/${targetChapter.id}` as any);
+
+      router.push(`/book/${id}/read/${targetChapter.id}` as any);
     } catch (error) {
+      console.error('Erro ao carregar capítulos:', error);
       Alert.alert('Erro', 'Não foi possível carregar os capítulos do livro.');
     }
   };
@@ -177,7 +169,6 @@ export default function BookDetailsScreen() {
       Alert.alert('Sucesso', 'Avaliação enviada com sucesso!');
       setShowReviewModal(false);
 
-      // Recarregar reviews
       const [statsData, reviewsData, userReviewData] = await Promise.all([
         ReviewService.getBookStats(book.id),
         ReviewService.getBookReviews(book.id, 1, 10),
@@ -217,7 +208,6 @@ export default function BookDetailsScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Header */}
         <View style={[styles.header, { borderBottomColor: borderColor }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <IconSymbol name="chevron.left" size={24} color={iconColor} />
@@ -232,7 +222,6 @@ export default function BookDetailsScreen() {
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}>
-          {/* Banner */}
           {book.banner_url && (
             <View style={styles.bannerContainer}>
               {bannerLoading ? (
@@ -251,7 +240,6 @@ export default function BookDetailsScreen() {
             </View>
           )}
 
-          {/* Cover */}
           <View style={styles.coverSection}>
             <View
               style={[
@@ -276,7 +264,6 @@ export default function BookDetailsScreen() {
             </View>
           </View>
 
-          {/* Book Info */}
           <View style={styles.infoSection}>
             <ThemedText style={styles.title}>{book.title}</ThemedText>
 
@@ -287,7 +274,6 @@ export default function BookDetailsScreen() {
               </ThemedText>
             </View>
 
-            {/* Rating */}
             <View style={styles.ratingContainer}>
               <RatingStars
                 rating={stats?.average_rating || 0}
@@ -301,7 +287,6 @@ export default function BookDetailsScreen() {
               </ThemedText>
             </View>
 
-            {/* Metadata */}
             <View style={styles.metadataContainer}>
               <View style={styles.metadataItem}>
                 <IconSymbol name="books.vertical.fill" size={20} color={iconColor} />
@@ -328,7 +313,6 @@ export default function BookDetailsScreen() {
               )}
             </View>
 
-            {/* Tabs */}
             <View style={[styles.tabsContainer, { borderBottomColor: borderColor }]}>
               <TouchableOpacity
                 style={[
@@ -367,7 +351,6 @@ export default function BookDetailsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Tab Content */}
             {activeTab === 'about' ? (
               <View style={styles.tabContent}>
                 {/* Synopsis */}
@@ -378,7 +361,6 @@ export default function BookDetailsScreen() {
                   </View>
                 )}
 
-                {/* Categories */}
                 {book.categories && book.categories.length > 0 && (
                   <View style={styles.section}>
                     <ThemedText style={styles.sectionTitle}>Categorias</ThemedText>
@@ -404,7 +386,6 @@ export default function BookDetailsScreen() {
                   </View>
                 )}
 
-                {/* Tags */}
                 {book.tags && book.tags.length > 0 && (
                   <View style={styles.section}>
                     <ThemedText style={styles.sectionTitle}>Tags</ThemedText>
@@ -425,7 +406,6 @@ export default function BookDetailsScreen() {
               </View>
             ) : (
               <View style={styles.tabContent}>
-                {/* Write Review Button */}
                 <TouchableOpacity
                   style={[styles.writeReviewButton, { backgroundColor: backgroundSecondary, borderColor }]}
                   onPress={handleOpenReviewModal}>
@@ -435,7 +415,6 @@ export default function BookDetailsScreen() {
                   </ThemedText>
                 </TouchableOpacity>
 
-                {/* Reviews List */}
                 {reviews.length > 0 ? (
                   reviews.map((review) => (
                     <ReviewCard key={review.id} review={review} />
@@ -456,8 +435,7 @@ export default function BookDetailsScreen() {
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
-        <View style={[styles.footer, { borderTopColor: borderColor }]}>
+        <View style={[styles.footer, { borderBottomColor: borderColor }]}>
           <View style={styles.footerButtons}>
             <Button
               title="Ler"
@@ -468,7 +446,6 @@ export default function BookDetailsScreen() {
           </View>
         </View>
 
-        {/* Review Modal */}
         <Modal
           visible={showReviewModal}
           animationType="slide"
@@ -479,7 +456,6 @@ export default function BookDetailsScreen() {
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.modalKeyboardView}>
-                {/* Modal Header */}
                 <View style={[styles.modalHeader, { borderBottomColor: borderColor }]}>
                   <TouchableOpacity
                     onPress={() => setShowReviewModal(false)}
@@ -496,7 +472,6 @@ export default function BookDetailsScreen() {
                   style={styles.modalContent}
                   contentContainerStyle={styles.modalScrollContent}
                   keyboardShouldPersistTaps="handled">
-                  {/* Rating */}
                   <View style={styles.modalSection}>
                     <ThemedText style={styles.modalSectionTitle}>
                       Sua Avaliação
@@ -511,7 +486,6 @@ export default function BookDetailsScreen() {
                     </View>
                   </View>
 
-                  {/* Comment */}
                   <View style={styles.modalSection}>
                     <ThemedText style={styles.modalSectionTitle}>
                       Comentário (opcional)
@@ -540,7 +514,6 @@ export default function BookDetailsScreen() {
                     </ThemedText>
                   </View>
 
-                  {/* Submit Button */}
                   <Button
                     title={userReview ? 'Atualizar Avaliação' : 'Enviar Avaliação'}
                     onPress={handleSubmitReview}
