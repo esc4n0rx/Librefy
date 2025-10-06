@@ -1,7 +1,8 @@
 // app/book/[id]/editor.tsx
 
-import { ChapterList } from '@/components/editor/chapter-list';
+import { FloatingActionButton } from '@/components/books/floating-action-button';
 import { ContentTypeSelector } from '@/components/editor/content-type-selector';
+import { NavigationModal } from '@/components/editor/navigation-modal';
 import { SaveIndicator } from '@/components/editor/save-indicator';
 import { TextEditor } from '@/components/editor/text-editor';
 import { Toolbar } from '@/components/editor/toolbar';
@@ -22,14 +23,14 @@ import { BookContent, CONTENT_TYPE_LABELS, ContentType, FORMATTING_ACTIONS } fro
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -40,7 +41,6 @@ export default function BookEditorScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
-  const backgroundSecondary = useThemeColor({}, 'backgroundSecondary');
   const borderColor = Colors[colorScheme].border;
   const primaryColor = Colors[colorScheme].primary;
   const placeholderColor = Colors[colorScheme].textSecondary;
@@ -58,6 +58,7 @@ export default function BookEditorScreen() {
   const [editorTitle, setEditorTitle] = useState('');
 
   // Modals
+  const [showNavigation, setShowNavigation] = useState(false);
   const [showContentSelector, setShowContentSelector] = useState(false);
   const [showChapterModal, setShowChapterModal] = useState(false);
   const [newChapterTitle, setNewChapterTitle] = useState('');
@@ -96,7 +97,9 @@ export default function BookEditorScreen() {
 
       // Selecionar primeiro capítulo se existir
       if (chaptersData.length > 0) {
-        handleSelectChapter(chaptersData[0]);
+        loadChapter(chaptersData[0]);
+      } else if (contentsData.length > 0) {
+        loadContent(contentsData[0]);
       }
     } catch (error: any) {
       Alert.alert('Erro', 'Não foi possível carregar o livro.');
@@ -209,7 +212,7 @@ export default function BookEditorScreen() {
     setSelectedType(content.content_type);
     setSelectedId(content.id);
     setEditorContent(content.content || '');
-    setEditorTitle(content.title || '');
+    setEditorTitle(content.title || CONTENT_TYPE_LABELS[content.content_type]);
   };
 
   const handleContentChange = (text: string) => {
@@ -243,9 +246,9 @@ export default function BookEditorScreen() {
 
       setChapters((prev) => [...prev, newChapter]);
       setShowChapterModal(false);
-      handleSelectChapter(newChapter);
+      loadChapter(newChapter);
     } catch (error: any) {
-        Alert.alert('Erro', 'Não foi possível criar o capítulo.');
+      Alert.alert('Erro', 'Não foi possível criar o capítulo.');
     }
   };
 
@@ -269,7 +272,7 @@ export default function BookEditorScreen() {
       // Selecionar o novo conteúdo
       const created = updatedContents.find((c) => c.content_type === contentType);
       if (created) {
-        handleSelectContent(created);
+        loadContent(created);
       }
     } catch (error: any) {
       Alert.alert('Erro', 'Não foi possível criar o conteúdo.');
@@ -277,39 +280,39 @@ export default function BookEditorScreen() {
   };
 
   const handleFormattingAction = (action: any) => {
-    // Implementação básica de formatação (pode ser melhorada)
-    const selectedText = editorContent; // Em uma implementação real, pegaríamos o texto selecionado
+    // Implementação básica de formatação
+    const cursor = editorContent.length;
+    let insertion = '';
     
-    let formattedText = '';
     switch (action.type) {
       case 'bold':
-        formattedText = `**${selectedText}**`;
+        insertion = '**texto em negrito**';
         break;
       case 'italic':
-        formattedText = `*${selectedText}*`;
+        insertion = '*texto em itálico*';
         break;
       case 'h1':
-        formattedText = `# ${selectedText}`;
+        insertion = '\n# Título 1\n';
         break;
       case 'h2':
-        formattedText = `## ${selectedText}`;
+        insertion = '\n## Título 2\n';
         break;
       case 'h3':
-        formattedText = `### ${selectedText}`;
+        insertion = '\n### Título 3\n';
         break;
       case 'bullet':
-        formattedText = `- ${selectedText}`;
+        insertion = '\n- Item da lista\n';
         break;
       case 'quote':
-        formattedText = `> ${selectedText}`;
+        insertion = '\n> Citação\n';
         break;
       default:
         return;
     }
 
-    // Por enquanto, apenas adiciona ao final
-    setEditorContent((prev) => prev + '\n' + formattedText);
-    triggerSave({ content: editorContent + '\n' + formattedText, title: editorTitle });
+    const newContent = editorContent + insertion;
+    setEditorContent(newContent);
+    triggerSave({ content: newContent, title: editorTitle });
   };
 
   const handleBack = async () => {
@@ -337,6 +340,12 @@ export default function BookEditorScreen() {
     }
   };
 
+  const getCurrentTitle = () => {
+    if (!selectedType) return 'Selecione um capítulo';
+    if (selectedType === 'chapter') return editorTitle;
+    return CONTENT_TYPE_LABELS[selectedType];
+  };
+
   if (loading) {
     return (
       <ThemedView style={styles.container}>
@@ -351,22 +360,24 @@ export default function BookEditorScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: borderColor }]}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
             <IconSymbol name="chevron.left" size={24} color={iconColor} />
           </TouchableOpacity>
+          
           <View style={styles.headerCenter}>
             <ThemedText style={styles.headerTitle} numberOfLines={1}>
-              {book?.title}
+              {getCurrentTitle()}
             </ThemedText>
             <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
           </View>
+
           <TouchableOpacity
             onPress={saveNow}
             disabled={!hasUnsavedChanges}
-            style={styles.saveButton}>
+            style={styles.headerButton}>
             <IconSymbol
               name="checkmark.circle.fill"
               size={24}
@@ -375,197 +386,216 @@ export default function BookEditorScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Main Content */}
-        <View style={styles.mainContent}>
-          {/* Sidebar */}
-          <ChapterList
-            chapters={chapters}
-            contents={contents}
-            selectedId={selectedId}
-            selectedType={selectedType || 'chapter'}
-            onSelectChapter={handleSelectChapter}
-            onSelectContent={handleSelectContent}
-            onAddChapter={handleAddChapter}
-            onAddContent={handleAddContent}
+        {/* Editor Area */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.editorContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+          {selectedId ? (
+            <>
+              {/* Title Input (only for chapters) */}
+              {selectedType === 'chapter' && (
+                <View style={[styles.titleContainer, { borderBottomColor: borderColor }]}>
+                  <TextInput
+                    style={[styles.titleInput, { color: iconColor }]}
+                    value={editorTitle}
+                    onChangeText={handleTitleChange}
+                    placeholder="Título do capítulo"
+                    placeholderTextColor={placeholderColor}
+                  />
+                </View>
+              )}
+
+              {/* Content Editor */}
+              <TextEditor value={editorContent} onChangeText={handleContentChange} />
+
+              {/* Toolbar */}
+              <Toolbar actions={FORMATTING_ACTIONS} onAction={handleFormattingAction} />
+            </>
+          ) : (
+            <View style={styles.emptyEditor}>
+              <IconSymbol name="books.vertical.fill" size={64} color={iconColor} />
+              <ThemedText style={styles.emptyText}>
+                Toque no botão abaixo para criar seu primeiro capítulo
+              </ThemedText>
+              <TouchableOpacity
+                style={[styles.emptyButton, { backgroundColor: primaryColor }]}
+                onPress={() => setShowNavigation(true)}>
+                <ThemedText style={styles.emptyButtonText}>Abrir Navegação</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+        </KeyboardAvoidingView>
+
+        {/* Floating Action Button */}
+        <FloatingActionButton
+          icon="books.vertical.fill"
+          onPress={() => setShowNavigation(true)}
+        />
+
+        {/* Navigation Modal */}
+        <NavigationModal
+          visible={showNavigation}
+          onClose={() => setShowNavigation(false)}
+          chapters={chapters}
+          contents={contents}
+          selectedId={selectedId}
+          selectedType={selectedType || 'chapter'}
+          onSelectChapter={handleSelectChapter}
+          onSelectContent={handleSelectContent}
+          onAddChapter={handleAddChapter}
+          onAddContent={handleAddContent}
           />
 
-          {/* Editor Area */}
-          <View style={styles.editorArea}>
-            {selectedId ? (
-              <>
-                {/* Title Input */}
-                {selectedType === 'chapter' && (
-                  <View style={[styles.titleContainer, { borderBottomColor: borderColor }]}>
-                    <TextInput
-                      style={[styles.titleInput, { color: iconColor }]}
-                      value={editorTitle}
-                      onChangeText={handleTitleChange}
-                      placeholder="Título do capítulo"
-                      placeholderTextColor={placeholderColor}
-                    />
-                  </View>
-                )}
-
-                {/* Content Editor */}
-                <TextEditor value={editorContent} onChangeText={handleContentChange} />
-
-                {/* Toolbar */}
-                <Toolbar actions={FORMATTING_ACTIONS} onAction={handleFormattingAction} />
-              </>
-            ) : (
-              <View style={styles.emptyEditor}>
-                <IconSymbol name="books.vertical.fill" size={64} color={iconColor} />
-                <ThemedText style={styles.emptyText}>
-                  Selecione um capítulo ou conteúdo para começar a escrever
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* New Chapter Modal */}
-        <Modal
-          visible={showChapterModal}
-          animationType="fade"
-          transparent
-          onRequestClose={() => setShowChapterModal(false)}>
-          <TouchableOpacity
-            style={styles.overlay}
-            activeOpacity={1}
-            onPress={() => setShowChapterModal(false)}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.modalContainer}>
-              <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-                <ThemedView style={[styles.modal, { borderColor }]}>
-                  <View style={[styles.modalHeader, { borderBottomColor: borderColor }]}>
-                    <ThemedText style={styles.modalTitle}>Novo Capítulo</ThemedText>
-                    <TouchableOpacity onPress={() => setShowChapterModal(false)}>
-                      <IconSymbol name="chevron.left" size={24} color={iconColor} />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.modalContent}>
-                    <Input
-                      label="Título do Capítulo"
-                      placeholder="Digite o título"
-                      value={newChapterTitle}
-                      onChangeText={setNewChapterTitle}
-                      autoFocus
-                      onSubmitEditing={handleCreateChapter}
-                      returnKeyType="done"
-                    />
-                    <Button title="Criar Capítulo" onPress={handleCreateChapter} />
-                  </View>
-                </ThemedView>
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
-          </TouchableOpacity>
-        </Modal>
-
-        {/* Content Type Selector */}
-        <ContentTypeSelector
-          visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
-          onSelect={handleCreateContent}
-          existingTypes={contents.map((c) => c.content_type)}
-        />
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    padding: Spacing.xs,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-    gap: Spacing.xs / 2,
-  },
-  headerTitle: {
-    ...Typography.h3,
-    fontWeight: '600',
-  },
-  saveButton: {
-    padding: Spacing.xs,
-  },
-  mainContent: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  editorArea: {
-    flex: 1,
-  },
-  titleContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  titleInput: {
-    ...Typography.h2,
-    fontWeight: '600',
-  },
-  emptyEditor: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl,
-    gap: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    textAlign: 'center',
-    opacity: 0.6,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '90%',
-    maxWidth: 400,
-  },
-  modal: {
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.lg,
-    borderBottomWidth: 1,
-  },
-  modalTitle: {
-    ...Typography.h3,
-    fontWeight: '600',
-  },
-  modalContent: {
-    padding: Spacing.lg,
-    gap: Spacing.md,
-  },
-});
+          {/* New Chapter Modal */}
+          <Modal
+            visible={showChapterModal}
+            animationType="fade"
+            transparent
+            onRequestClose={() => setShowChapterModal(false)}>
+            <TouchableOpacity
+              style={styles.overlay}
+              activeOpacity={1}
+              onPress={() => setShowChapterModal(false)}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.modalContainer}>
+                <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                  <ThemedView style={[styles.modal, { borderColor }]}>
+                    <View style={[styles.modalHeader, { borderBottomColor: borderColor }]}>
+                      <ThemedText style={styles.modalTitle}>Novo Capítulo</ThemedText>
+                      <TouchableOpacity onPress={() => setShowChapterModal(false)}>
+                        <IconSymbol name="chevron.left" size={24} color={iconColor} />
+                      </TouchableOpacity>
+                    </View>
+  
+                    <View style={styles.modalContent}>
+                      <Input
+                        label="Título do Capítulo"
+                        placeholder="Digite o título"
+                        value={newChapterTitle}
+                        onChangeText={setNewChapterTitle}
+                        autoFocus
+                        onSubmitEditing={handleCreateChapter}
+                        returnKeyType="done"
+                      />
+                      <Button title="Criar Capítulo" onPress={handleCreateChapter} />
+                    </View>
+                  </ThemedView>
+                </TouchableOpacity>
+              </KeyboardAvoidingView>
+            </TouchableOpacity>
+          </Modal>
+  
+          {/* Content Type Selector */}
+          <ContentTypeSelector
+            visible={showContentSelector}
+            onClose={() => setShowContentSelector(false)}
+            onSelect={handleCreateContent}
+            existingTypes={contents.map((c) => c.content_type)}
+          />
+        </SafeAreaView>
+      </ThemedView>
+    );
+  }
+  
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+    },
+    headerButton: {
+      padding: Spacing.xs,
+      minWidth: 40,
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 2,
+      paddingHorizontal: Spacing.md,
+    },
+    headerTitle: {
+      ...Typography.body,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    editorContainer: {
+      flex: 1,
+    },
+    titleContainer: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+    },
+    titleInput: {
+      ...Typography.h2,
+      fontWeight: '600',
+    },
+    emptyEditor: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: Spacing.xl,
+      gap: Spacing.lg,
+    },
+    emptyText: {
+      ...Typography.body,
+      textAlign: 'center',
+      opacity: 0.6,
+    },
+    emptyButton: {
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.sm,
+    },
+    emptyButtonText: {
+      ...Typography.body,
+      color: '#fff',
+      fontWeight: '600',
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+      width: '90%',
+      maxWidth: 400,
+    },
+    modal: {
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: Spacing.lg,
+      borderBottomWidth: 1,
+    },
+    modalTitle: {
+      ...Typography.h3,
+      fontWeight: '600',
+    },
+    modalContent: {
+      padding: Spacing.lg,
+      gap: Spacing.md,
+    },
+  });
