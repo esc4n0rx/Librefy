@@ -1,12 +1,5 @@
-// constants/theme.ts
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import { Platform } from 'react-native';
 
-// Paleta de cores do Librefy baseada no Paleta.md
 const redScale = {
   50: '#fbe4e4',
   100: '#f4d1d3',
@@ -101,7 +94,6 @@ export const Colors = {
   },
 };
 
-// Tipografia baseada em Poppins conforme Paleta.md
 export const Typography = {
   h1: {
     fontSize: 22,
@@ -176,4 +168,22 @@ export const BorderRadius = {
   md: 12,
   lg: 16,
   full: 9999,
+};
+
+export const ReadingThemes = {
+  light: {
+    background: '#FFFFFF',
+    text: '#000000',
+    secondary: '#666666',
+  },
+  dark: {
+    background: '#1a1a1a',
+    text: '#E5E5E5',
+    secondary: '#999999',
+  },
+  sepia: {
+    background: '#F4ECD8',
+    text: '#5C4B37',
+    secondary: '#8B7355',
+  },
 };

@@ -1,4 +1,4 @@
-// app/(tabs)/library.tsx
+// app/(tabs)/library.tsx (Atualizado)
 
 import { BookCard } from '@/components/books/book-card';
 import { BookFormModal } from '@/components/books/book-form-modal';
@@ -17,12 +17,12 @@ import { Book, UserLibraryItem } from '@/types/book.types';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -61,7 +61,7 @@ export default function LibraryScreen() {
         BookService.getUserBooks(user.id),
         BookService.getUserLibrary(user.id),
       ]);
-      
+
       setMyBooks(booksData);
       setLibraryBooks(libraryData);
     } catch (error: any) {
@@ -77,8 +77,14 @@ export default function LibraryScreen() {
     setRefreshing(false);
   }, []);
 
-  const handleBookPress = (bookId: string) => {
-    router.push(`/book/${bookId}/editor` as any);
+  const handleBookPress = (bookId: string, isOwner: boolean = false) => {
+    if (isOwner) {
+      // Se é dono, vai para o editor
+      router.push(`/book/${bookId}/editor` as any);
+    } else {
+      // Se não é dono, vai para os detalhes
+      router.push(`/book/${bookId}/details` as any);
+    }
   };
 
   const handleBookLongPress = (book: Book) => {
@@ -167,13 +173,13 @@ export default function LibraryScreen() {
 
   const renderEmptyState = () => {
     const isLibraryTab = activeTab === 'library';
-    
+
     return (
       <View style={styles.emptyState}>
-        <IconSymbol 
-          name={isLibraryTab ? 'books.vertical.fill' : 'paperplane.fill'} 
-          size={64} 
-          color={iconColor} 
+        <IconSymbol
+          name={isLibraryTab ? 'books.vertical.fill' : 'paperplane.fill'}
+          size={64}
+          color={iconColor}
         />
         <ThemedText style={styles.emptyTitle}>
           {isLibraryTab ? 'Biblioteca vazia' : 'Nenhum livro em criação'}
@@ -210,10 +216,10 @@ export default function LibraryScreen() {
               activeTab === 'library' && { borderBottomColor: primaryColor },
             ]}
             onPress={() => setActiveTab('library')}>
-            <IconSymbol 
-              name="books.vertical.fill" 
-              size={20} 
-              color={activeTab === 'library' ? primaryColor : iconColor} 
+            <IconSymbol
+              name="books.vertical.fill"
+              size={20}
+              color={activeTab === 'library' ? primaryColor : iconColor}
             />
             <ThemedText
               style={[
@@ -230,10 +236,10 @@ export default function LibraryScreen() {
               activeTab === 'creating' && { borderBottomColor: primaryColor },
             ]}
             onPress={() => setActiveTab('creating')}>
-            <IconSymbol 
-              name="paperplane.fill" 
-              size={20} 
-              color={activeTab === 'creating' ? primaryColor : iconColor} 
+            <IconSymbol
+              name="paperplane.fill"
+              size={20}
+              color={activeTab === 'creating' ? primaryColor : iconColor}
             />
             <ThemedText
               style={[
@@ -253,9 +259,7 @@ export default function LibraryScreen() {
             style={styles.content}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }>
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
             {activeTab === 'library' ? (
               // Library Tab
               libraryBooks.length > 0 ? (
@@ -264,7 +268,7 @@ export default function LibraryScreen() {
                     <BookCard
                       key={item.id}
                       book={item.book}
-                      onPress={() => handleBookPress(item.book!.id)}
+                      onPress={() => handleBookPress(item.book!.id, false)}
                       showStatus={false}
                     />
                   ) : null
@@ -279,7 +283,7 @@ export default function LibraryScreen() {
                   <BookCard
                     key={book.id}
                     book={book}
-                    onPress={() => handleBookPress(book.id)}
+                    onPress={() => handleBookPress(book.id, true)}
                     onLongPress={() => handleBookLongPress(book)}
                     showStatus={true}
                   />
@@ -293,10 +297,7 @@ export default function LibraryScreen() {
 
         {/* Floating Action Button - Only on "Creating" tab */}
         {activeTab === 'creating' && (
-          <FloatingActionButton
-            icon="paperplane.fill"
-            onPress={() => setShowCreateModal(true)}
-          />
+          <FloatingActionButton icon="paperplane.fill" onPress={() => setShowCreateModal(true)} />
         )}
 
         {/* Create Book Modal */}
