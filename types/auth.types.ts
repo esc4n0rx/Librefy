@@ -5,6 +5,9 @@ export interface User {
   full_name?: string;
   avatar_url?: string;
   bio?: string;
+  interests?: string[];
+  upload_folder?: string;
+  profile_completed?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +38,25 @@ export interface ResetPasswordData {
   confirmPassword: string;
 }
 
+export interface UpdateProfileData {
+  full_name?: string;
+  bio?: string;
+  avatar_url?: string;
+  interests?: string[];
+  profile_completed?: boolean;
+}
+
+export interface CreateProfileData {
+  full_name: string;
+  bio?: string;
+  interests: string[];
+  avatar_file?: {
+    uri: string;
+    name: string;
+    type: string;
+  };
+}
+
 export type SocialProvider = 'google' | 'facebook' | 'twitter';
 
 export interface SocialAuthResult {
@@ -50,4 +72,20 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signInWithSocial: (provider: SocialProvider, token: string) => Promise<void>;
+  updateProfile: (data: UpdateProfileData) => Promise<void>;
 }
+
+export const LITERARY_INTERESTS = [
+  { id: 'romance', label: 'Romance', icon: '💕' },
+  { id: 'fantasy', label: 'Fantasia', icon: '🐉' },
+  { id: 'scifi', label: 'Ficção Científica', icon: '🚀' },
+  { id: 'mystery', label: 'Mistério', icon: '🔍' },
+  { id: 'thriller', label: 'Suspense', icon: '😱' },
+  { id: 'horror', label: 'Terror', icon: '👻' },
+  { id: 'adventure', label: 'Aventura', icon: '⚔️' },
+  { id: 'drama', label: 'Drama', icon: '🎭' },
+  { id: 'poetry', label: 'Poesia', icon: '📜' },
+  { id: 'biography', label: 'Biografia', icon: '👤' },
+  { id: 'history', label: 'História', icon: '📚' },
+  { id: 'selfhelp', label: 'Autoajuda', icon: '💪' },
+] as const;

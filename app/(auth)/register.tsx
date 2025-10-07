@@ -1,4 +1,3 @@
-// app/(auth)/register.tsx
 import { Button } from '@/components/forms/button';
 import { Input } from '@/components/forms/input';
 import { SocialButton } from '@/components/forms/social-button';
@@ -12,13 +11,13 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -37,7 +36,9 @@ export default function RegisterScreen() {
     confirmPassword?: string;
   }>({});
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<'google' | 'twitter' | 'facebook' | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'twitter' | 'facebook' | null>(
+    null
+  );
 
   // Processar resposta do Google
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function RegisterScreen() {
   const handleGoogleSuccess = async (token: string) => {
     try {
       await signInWithSocial('google', token);
-      router.replace('/(tabs)');
+      router.replace('/(auth)/create-profile' as any);
     } catch (error: any) {
       Alert.alert('Erro no cadastro', error.message || 'Ocorreu um erro. Tente novamente.');
     } finally {
@@ -100,11 +101,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await signUp({ email, password, confirmPassword });
-      Alert.alert(
-        'Sucesso!',
-        'Conta criada com sucesso. Verifique seu email para confirmar.',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-      );
+      router.replace('/(auth)/create-profile' as any);
     } catch (error: any) {
       Alert.alert('Erro ao cadastrar', error.message || 'Ocorreu um erro. Tente novamente.');
     } finally {
@@ -183,9 +180,9 @@ export default function RegisterScreen() {
                 editable={!loading && !socialLoading}
               />
 
-              <Button 
-                title="Cadastrar" 
-                onPress={handleSignUp} 
+              <Button
+                title="Cadastrar"
+                onPress={handleSignUp}
                 loading={loading}
                 disabled={!!socialLoading}
               />
@@ -193,25 +190,25 @@ export default function RegisterScreen() {
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-               <ThemedText style={styles.dividerText}>Ou cadastre-se com</ThemedText>
+              <ThemedText style={styles.dividerText}>Ou cadastre-se com</ThemedText>
               <View style={styles.dividerLine} />
             </View>
 
             <View style={styles.socialButtons}>
-              <SocialButton 
-                provider="google" 
+              <SocialButton
+                provider="google"
                 onPress={() => handleSocialSignUp('google')}
                 disabled={loading || !!socialLoading || !request}
                 loading={socialLoading === 'google'}
               />
-              <SocialButton 
-                provider="twitter" 
+              <SocialButton
+                provider="twitter"
                 onPress={() => handleSocialSignUp('twitter')}
                 disabled={loading || !!socialLoading}
                 loading={socialLoading === 'twitter'}
               />
-              <SocialButton 
-                provider="facebook" 
+              <SocialButton
+                provider="facebook"
                 onPress={() => handleSocialSignUp('facebook')}
                 disabled={loading || !!socialLoading}
                 loading={socialLoading === 'facebook'}
@@ -220,9 +217,7 @@ export default function RegisterScreen() {
 
             <View style={styles.footer}>
               <ThemedText style={styles.footerText}>Já tem uma conta? </ThemedText>
-              <TouchableOpacity 
-                onPress={() => router.back()}
-                disabled={loading || !!socialLoading}>
+              <TouchableOpacity onPress={() => router.back()} disabled={loading || !!socialLoading}>
                 <ThemedText style={styles.footerLink}>Entrar</ThemedText>
               </TouchableOpacity>
             </View>

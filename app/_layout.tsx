@@ -1,12 +1,10 @@
-// app/_layout.tsx
+import { AuthProvider, useAuth } from '@/contexts/auth.context';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
-import { AuthProvider, useAuth } from '@/contexts/auth.context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -27,8 +25,13 @@ function RootLayoutNav() {
       // Redirecionar para onboarding se não autenticado
       router.replace('/(auth)/onboarding');
     } else if (user && inAuthGroup) {
-      // Redirecionar para tabs se autenticado
-      router.replace('/(tabs)');
+      // Verificar se perfil está completo
+      if (!user.profile_completed && (segments[1] as string) !== 'create-profile') {
+        router.replace('/(auth)/create-profile' as any);
+      } else if (user.profile_completed) {
+        // Redirecionar para tabs se autenticado e perfil completo
+        router.replace('/(tabs)');
+      }
     }
   }, [user, segments, loading]);
 

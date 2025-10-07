@@ -83,8 +83,10 @@ export class AuthService {
    * Obtém usuário atual
    */
   static async getCurrentUser(): Promise<User | null> {
-    const { data: { session } } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     if (!session?.user) return null;
 
     const { data: profile, error } = await supabase
@@ -112,5 +114,20 @@ export class AuthService {
     if (error) throw error;
 
     return data;
+  }
+
+  /**
+   * Verifica se o perfil está completo
+   */
+  static async checkProfileCompletion(userId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('profile_completed')
+      .eq('id', userId)
+      .single();
+
+    if (error) return false;
+
+    return data?.profile_completed || false;
   }
 }
