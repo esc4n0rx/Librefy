@@ -36,6 +36,7 @@ const MAPPING = {
   'books.vertical.fill': 'library-books',
   'compass.fill': 'explore',
   'person.fill': 'person',
+  'star.fill': 'star',
 } as IconMapping;
 
 /**

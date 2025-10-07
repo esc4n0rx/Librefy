@@ -1,3 +1,5 @@
+// app/_layout.tsx
+
 import { AuthProvider, useAuth } from '@/contexts/auth.context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -22,14 +24,11 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!user && !inAuthGroup) {
-      // Redirecionar para onboarding se não autenticado
       router.replace('/(auth)/onboarding');
     } else if (user && inAuthGroup) {
-      // Verificar se perfil está completo
       if (!user.profile_completed && (segments[1] as string) !== 'create-profile') {
         router.replace('/(auth)/create-profile' as any);
       } else if (user.profile_completed) {
-        // Redirecionar para tabs se autenticado e perfil completo
         router.replace('/(tabs)');
       }
     }
@@ -40,6 +39,8 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="book" />
+        <Stack.Screen name="author" />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

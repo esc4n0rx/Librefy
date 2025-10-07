@@ -105,3 +105,12 @@ export interface CreateChapterData {
   content?: string;
   content_format?: ContentFormat;
 }
+
+// Interface para autor em alta (usado na home)
+export interface TrendingAuthor {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+  total_books: number;
+  total_likes: number;
+}

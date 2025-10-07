@@ -1,24 +1,155 @@
-// app/(tabs)/index.tsx
-import { AuthorSkeleton } from '@/components/skeletons/author-skeleton';
-import { BookSkeleton } from '@/components/skeletons/book-skeleton';
-import { CategoryChipSkeleton } from '@/components/skeletons/category-chip-skeleton';
+import { AuthorCircle } from '@/components/home/author-circle';
+import { BestsellerCarousel } from '@/components/home/bestseller-carousel';
+import { BookSection } from '@/components/home/book-section';
+import { CategoryChip } from '@/components/home/category-chip';
+import { HomeSkeleton } from '@/components/home/home-skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Spacing, Typography } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth.context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import React from 'react';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { HomeService, TrendingAuthor } from '@/services/home.service';
+import { Book, BookCategory } from '@/types/book.types';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { user } = useAuth();
   const colorScheme = useColorScheme() ?? 'light';
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'inputBackground');
   const borderColor = Colors[colorScheme].border;
   const placeholderColor = Colors[colorScheme].textSecondary;
-  const skeletonColor = Colors[colorScheme].border;
+
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [categories, setCategories] = useState<BookCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+  const [trendingBooks, setTrendingBooks] = useState<Book[]>([]);
+  const [recentBooks, setRecentBooks] = useState<Book[]>([]);
+  const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
+  const [trendingAuthors, setTrendingAuthors] = useState<TrendingAuthor[]>([]);
+
+  useEffect(() => {
+    loadHomeData();
+  }, [user]);
+
+  const loadHomeData = async () => {
+    try {
+      setLoading(true);
+
+      const promises = [
+        HomeService.getCategories(),
+        HomeService.getTrendingBooks(10),
+        HomeService.getRecentBooks(10),
+        HomeService.getTrendingAuthors(10),
+      ];
+
+      if (user) {
+        promises.push(HomeService.getRecommendedBooks(user.id, 10));
+      }
+
+      const results = await Promise.all(promises);
+
+      setCategories(results[0] as BookCategory[]);
+      setTrendingBooks(results[1] as Book[]);
+      setRecentBooks(results[2] as Book[]);
+      setTrendingAuthors(results[3] as TrendingAuthor[]);
+
+      if (user && results[4]) {
+        setRecommendedBooks(results[4] as Book[]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados da home:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadHomeData();
+    setRefreshing(false);
+  }, [user]);
+
+  const handleBookPress = (book: Book) => {
+    router.push(`/book/${book.id}/details`);
+  };
+
+  const handleAuthorPress = (author: TrendingAuthor) => {
+    router.push(`/author/${author.id}/profile` as any);
+  };
+
+  const handleSeeAllBooks = (type: 'trending' | 'recent' | 'recommended') => {
+    router.push('/discover');
+  };
+
+  const handleSearchPress = () => {
+    router.push('/discover');
+  };
+
+  const handleCategoryPress = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    // Aqui você pode filtrar os livros por categoria se desejar
+    // Por enquanto, só está marcando como ativo
+  };
+
+  if (loading) {
+    return (
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity>
+              <IconSymbol name="person.2.fill" size={24} color={iconColor} />
+            </TouchableOpacity>
+            <ThemedText style={styles.headerTitle}>Bookland</ThemedText>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.headerIcon}>
+                <IconSymbol name="bookmark.fill" size={24} color={iconColor} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerIcon}>
+                <IconSymbol name="bell.fill" size={24} color={iconColor} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Search Bar */}
+            <TouchableOpacity
+              style={[styles.searchContainer, { backgroundColor, borderColor }]}
+              onPress={handleSearchPress}
+              activeOpacity={0.7}>
+              <IconSymbol name="magnifyingglass" size={20} color={iconColor} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search.."
+                placeholderTextColor={placeholderColor}
+                editable={false}
+                pointerEvents="none"
+              />
+              <IconSymbol name="slider.horizontal.3" size={20} color={iconColor} />
+            </TouchableOpacity>
+
+            <HomeSkeleton />
+          </ScrollView>
+        </SafeAreaView>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -28,7 +159,7 @@ export default function HomeScreen() {
           <TouchableOpacity>
             <IconSymbol name="person.2.fill" size={24} color={iconColor} />
           </TouchableOpacity>
-          <ThemedText style={styles.headerTitle}>Librefy</ThemedText>
+          <ThemedText style={styles.headerTitle}>Bookland</ThemedText>
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.headerIcon}>
               <IconSymbol name="bookmark.fill" size={24} color={iconColor} />
@@ -39,107 +170,152 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
-        >
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           {/* Search Bar */}
-          <View style={[styles.searchContainer, { backgroundColor, borderColor }]}>
+          <TouchableOpacity
+            style={[styles.searchContainer, { backgroundColor, borderColor }]}
+            onPress={handleSearchPress}
+            activeOpacity={0.7}>
             <IconSymbol name="magnifyingglass" size={20} color={iconColor} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar..."
+              placeholder="Search.."
               placeholderTextColor={placeholderColor}
               editable={false}
+              pointerEvents="none"
             />
-            <TouchableOpacity>
-              <IconSymbol name="slider.horizontal.3" size={20} color={iconColor} />
-            </TouchableOpacity>
-          </View>
+            <IconSymbol name="slider.horizontal.3" size={20} color={iconColor} />
+          </TouchableOpacity>
 
           {/* Categories */}
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.categoriesContainer}
-          >
-            <View style={[styles.categoryChip, styles.categoryChipActive]}>
-              <IconSymbol name="books.vertical.fill" size={18} color="#fff" />
-              <ThemedText style={styles.categoryTextActive}>Todos</ThemedText>
-            </View>
-            <CategoryChipSkeleton />
-            <CategoryChipSkeleton />
-            <CategoryChipSkeleton />
-            <CategoryChipSkeleton />
+            contentContainerStyle={styles.categoriesContent}>
+            <CategoryChip
+              category={{ id: 'all', name: 'All', slug: 'all', created_at: '' }}
+              isActive={selectedCategoryId === 'all'}
+              onPress={() => handleCategoryPress('all')}
+            />
+            {categories.map((category) => (
+              <CategoryChip
+                key={category.id}
+                category={category}
+                isActive={selectedCategoryId === category.id}
+                onPress={() => handleCategoryPress(category.id)}
+              />
+            ))}
           </ScrollView>
 
           {/* Bestsellers Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <ThemedText style={styles.sectionTitle}>Bestsellers</ThemedText>
-              <TouchableOpacity>
-                <ThemedText style={styles.seeAll}>Ver Todos</ThemedText>
+              <TouchableOpacity onPress={() => handleSeeAllBooks('trending')}>
+                <ThemedText style={[styles.seeAll, { color: Colors[colorScheme].primary }]}>
+                  See All
+                </ThemedText>
               </TouchableOpacity>
             </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalScroll}
-            >
-              {[1, 2, 3].map((item) => (
-                <View key={item} style={styles.bestsellerCard}>
-                  <View style={[styles.bestsellerCover, { backgroundColor: skeletonColor }]} />
-                </View>
-              ))}
-            </ScrollView>
+
+            {trendingBooks.length > 0 ? (
+              <BestsellerCarousel books={trendingBooks.slice(0, 5)} onBookPress={handleBookPress} />
+            ) : (
+              <View style={styles.emptyState}>
+                <ThemedText style={styles.emptyText}>
+                  No bestsellers available at the moment
+                </ThemedText>
+              </View>
+            )}
           </View>
 
           {/* Authors Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText style={styles.sectionTitle}>Autores</ThemedText>
-              <TouchableOpacity>
-                <ThemedText style={styles.seeAll}>Ver Todos</ThemedText>
+              <ThemedText style={styles.sectionTitle}>Authors</ThemedText>
+              <TouchableOpacity onPress={() => router.push('/discover')}>
+                <ThemedText style={[styles.seeAll, { color: Colors[colorScheme].primary }]}>
+                  See All
+                </ThemedText>
               </TouchableOpacity>
             </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalScroll}
-            >
-              {[1, 2, 3, 4, 5].map((item) => (
-                <AuthorSkeleton key={item} />
-              ))}
-            </ScrollView>
+
+            {trendingAuthors.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.horizontalScroll}
+                contentContainerStyle={styles.authorsContent}>
+                {trendingAuthors.map((author) => (
+                  <AuthorCircle
+                    key={author.id}
+                    author={author}
+                    onPress={() => handleAuthorPress(author)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.emptyState}>
+                <ThemedText style={styles.emptyText}>
+                  No authors available at the moment
+                </ThemedText>
+              </View>
+            )}
           </View>
 
-          {/* Top Rated Section */}
-          <View style={styles.section}>
-            <ScrollView 
-              horizontal 
+          {/* Tabs Section */}
+          <View style={styles.tabsSection}>
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.tabsContainer}
-            >
-              <TouchableOpacity style={styles.tab}>
-                <ThemedText style={styles.tabText}>Grátis</ThemedText>
-              </TouchableOpacity>
+              style={styles.tabsContainer}>
               <TouchableOpacity style={[styles.tab, styles.tabActive]}>
-                <ThemedText style={styles.tabTextActive}>Mais Avaliados</ThemedText>
+                <ThemedText style={[styles.tabText, styles.tabTextActive]}>Top Rated</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.tab}>
-                <ThemedText style={styles.tabText}>Lançamentos</ThemedText>
+                <ThemedText style={styles.tabText}>New Release</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.tab}>
-                <ThemedText style={styles.tabText}>Top Autores</ThemedText>
+                <ThemedText style={styles.tabText}>Top Authors</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.tab}>
+                <ThemedText style={styles.tabText}>Old Well</ThemedText>
               </TouchableOpacity>
             </ScrollView>
-
-            <View style={styles.booksList}>
-              {[1, 2, 3, 4].map((item) => (
-                <BookSkeleton key={item} />
-              ))}
-            </View>
           </View>
+
+          {/* Recommended Section (Only for logged users) */}
+          {user && recommendedBooks.length > 0 && (
+            <BookSection
+              title="Recommended"
+              books={recommendedBooks}
+              onBookPress={handleBookPress}
+              onSeeAllPress={() => handleSeeAllBooks('recommended')}
+            />
+          )}
+
+          {/* Recent Section */}
+          <BookSection
+            title="New Release"
+            books={recentBooks}
+            onBookPress={handleBookPress}
+            onSeeAllPress={() => handleSeeAllBooks('recent')}
+          />
+
+          {/* Trending Section */}
+          <BookSection
+            title="Top Rated"
+            books={trendingBooks}
+            onBookPress={handleBookPress}
+            onSeeAllPress={() => handleSeeAllBooks('trending')}
+          />
+
+          {/* Spacer for bottom */}
+          <View style={{ height: Spacing.xl }} />
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -166,10 +342,11 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   headerIcon: {
-    padding: Spacing.xs,
+    width: 24,
+    height: 24,
   },
   content: {
     flex: 1,
@@ -191,25 +368,9 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     marginBottom: Spacing.lg,
+  },
+  categoriesContent: {
     paddingHorizontal: Spacing.lg,
-  },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    height: 40,
-    borderRadius: BorderRadius.full,
-    marginRight: Spacing.sm,
-    backgroundColor: Colors.light.backgroundSecondary,
-    gap: Spacing.xs,
-  },
-  categoryChipActive: {
-    backgroundColor: Colors.light.primary,
-  },
-  categoryTextActive: {
-    ...Typography.body,
-    color: '#fff',
-    fontWeight: '600',
   },
   section: {
     marginBottom: Spacing.xl,
@@ -227,28 +388,36 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     ...Typography.body,
-    color: Colors.light.primary,
     fontWeight: '600',
+    fontSize: 13,
   },
   horizontalScroll: {
     paddingLeft: Spacing.lg,
   },
-  bestsellerCard: {
-    marginRight: Spacing.md,
+  authorsContent: {
+    paddingRight: Spacing.lg,
   },
-  bestsellerCover: {
-    width: 140,
-    height: 200,
-    borderRadius: BorderRadius.md,
+  emptyState: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    ...Typography.body,
+    opacity: 0.6,
+    textAlign: 'center',
+  },
+  tabsSection: {
+    marginBottom: Spacing.lg,
   },
   tabsContainer: {
-    marginBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },
   tab: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     marginRight: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   tabActive: {
     borderBottomWidth: 2,
@@ -256,14 +425,12 @@ const styles = StyleSheet.create({
   },
   tabText: {
     ...Typography.body,
+    fontSize: 14,
     opacity: 0.6,
   },
   tabTextActive: {
-    ...Typography.body,
     fontWeight: '600',
     color: Colors.light.primary,
-  },
-  booksList: {
-    paddingHorizontal: Spacing.lg,
+    opacity: 1,
   },
 });

@@ -18,18 +18,18 @@ export function AuthorSkeleton() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    width: 80,
     marginRight: Spacing.md,
-    width: 70,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     marginBottom: Spacing.xs,
   },
   name: {
     height: 12,
-    width: '100%',
+    width: 60,
     borderRadius: 4,
   },
 });
