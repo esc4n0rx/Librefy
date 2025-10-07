@@ -54,6 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const profile = await AuthService.signIn(data);
       setUser(profile);
+    } catch (error) {
+      throw error; // Relança o erro para a UI
     } finally {
       setLoading(false);
     }
@@ -64,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const profile = await AuthService.signUp(data);
       setUser(profile);
+    } catch (error) {
+      throw error; // Relança o erro para a UI
     } finally {
       setLoading(false);
     }
@@ -102,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(profile);
+    } catch (error) {
+      throw error; // Relança o erro para a UI
     } finally {
       setLoading(false);
     }
@@ -114,6 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const updatedProfile = await ProfileService.updateProfile(user.id, data);
       setUser(updatedProfile);
+    } catch (error) {
+      throw error; // Relança o erro para a UI
     } finally {
       setLoading(false);
     }
